@@ -16,7 +16,7 @@ import os
 # Add src directory to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from models.interpretable_classifiers import LogisticRegressionClassifier, DecisionTreeClassifier
+from models.interpretable_classifiers import LogisticRegressionClassifier, DecisionTreeClassifier, SVMClassifier
 from evaluation.original_mmtd_model import OriginalMMTD
 from transformers.models.bert.modeling_bert import SequenceClassifierOutput
 
@@ -111,6 +111,13 @@ class InterpretableMMTD(nn.Module):
                 device=device,
                 **kwargs
             )
+        elif classifier_type == "svm":
+            return SVMClassifier(
+                input_size=input_size,
+                num_classes=num_classes,
+                device=device,
+                **kwargs
+            )
         elif classifier_type == "attention":
             # Placeholder for future implementation
             raise NotImplementedError("Attention classifier not yet implemented")
@@ -200,6 +207,12 @@ class InterpretableMMTD(nn.Module):
             hasattr(self.interpretable_classifier, 'fit_incremental')):
             self.interpretable_classifier.fit_incremental(pooled_features, labels)
         
+        # For SVM: Fit incrementally during training
+        if (self.classifier_type == "svm" and 
+            labels is not None and 
+            hasattr(self.interpretable_classifier, 'fit_incremental')):
+            self.interpretable_classifier.fit_incremental(pooled_features, labels)
+        
         # Classification through interpretable classifier
         logits = self.interpretable_classifier(pooled_features)
         
@@ -236,13 +249,29 @@ class InterpretableMMTD(nn.Module):
             return []
     
     def get_tree_structure(self) -> Dict[str, Any]:
-        """Get tree structure (only for decision tree classifier)"""
-        if (self.classifier_type == "decision_tree" and 
-            hasattr(self.interpretable_classifier, 'get_tree_structure')):
+        """Get Decision Tree structure (Decision Tree only)"""
+        if hasattr(self.interpretable_classifier, 'get_tree_structure'):
             return self.interpretable_classifier.get_tree_structure()
-        else:
-            logger.warning("Tree structure only available for decision tree classifier")
-            return {}
+        return {}
+    
+    def get_support_vectors(self) -> Dict[str, Any]:
+        """Get SVM support vectors information (SVM only)"""
+        if hasattr(self.interpretable_classifier, 'get_support_vectors'):
+            return self.interpretable_classifier.get_support_vectors()
+        return {}
+    
+    def get_margin_analysis(self) -> Dict[str, Any]:
+        """Get SVM margin analysis (SVM only)"""
+        if hasattr(self.interpretable_classifier, 'get_margin_analysis'):
+            return self.interpretable_classifier.get_margin_analysis()
+        return {}
+    
+    def get_decision_function_values(self, input_ids, attention_mask, pixel_values) -> torch.Tensor:
+        """Get SVM decision function values (SVM only)"""
+        if hasattr(self.interpretable_classifier, 'get_decision_function_values'):
+            features = self.extract_features(input_ids, attention_mask=attention_mask, pixel_values=pixel_values)
+            return self.interpretable_classifier.get_decision_function_values(features)
+        return torch.tensor([])
     
     def visualize_feature_importance(self, **kwargs):
         """Visualize feature importance"""

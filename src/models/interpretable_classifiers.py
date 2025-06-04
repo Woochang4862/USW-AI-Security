@@ -14,6 +14,7 @@ import logging
 from pathlib import Path
 from sklearn.tree import DecisionTreeClassifier as SklearnDecisionTree
 from sklearn.tree import export_text
+from sklearn.svm import SVC
 import joblib
 
 logger = logging.getLogger(__name__)
@@ -606,6 +607,461 @@ class DecisionTreeClassifier(nn.Module):
         return summary
 
 
+class SVMClassifier(nn.Module):
+    """
+    Interpretable Support Vector Machine classifier for MMTD
+    
+    Features:
+    - Support vector analysis for interpretability
+    - Decision boundary visualization
+    - Margin analysis
+    - Multiple kernel support (linear, rbf, poly)
+    - Feature importance via coefficients (linear kernel)
+    """
+    
+    def __init__(
+        self,
+        input_size: int,
+        num_classes: int = 2,
+        C: float = 1.0,
+        kernel: str = 'rbf',
+        gamma: Union[str, float] = 'scale',
+        degree: int = 3,
+        coef0: float = 0.0,
+        probability: bool = True,
+        random_state: int = 42,
+        device: Optional[torch.device] = None
+    ):
+        """
+        Initialize SVM classifier
+        
+        Args:
+            input_size: Size of input features (768 for MMTD fusion output)
+            num_classes: Number of output classes (2 for spam/ham)
+            C: Regularization parameter (higher C = less regularization)
+            kernel: Kernel type ('linear', 'poly', 'rbf', 'sigmoid')
+            gamma: Kernel coefficient for 'rbf', 'poly', 'sigmoid'
+            degree: Degree for polynomial kernel
+            coef0: Independent term in kernel function
+            probability: Whether to enable probability estimates
+            random_state: Random seed for reproducibility
+            device: Device to run on
+        """
+        super(SVMClassifier, self).__init__()
+        
+        self.input_size = input_size
+        self.num_classes = num_classes
+        self.C = C
+        self.kernel = kernel
+        self.gamma = gamma
+        self.degree = degree
+        self.coef0 = coef0
+        self.probability = probability
+        self.random_state = random_state
+        self.device = device or torch.device("cpu")
+        
+        # Initialize SVM model
+        self.svm = SVC(
+            C=C,
+            kernel=kernel,
+            gamma=gamma,
+            degree=degree,
+            coef0=coef0,
+            probability=probability,
+            random_state=random_state
+        )
+        
+        self.is_fitted = False
+        
+        # Move to device
+        self.to(self.device)
+        
+        logger.info(f"Initialized SVMClassifier:")
+        logger.info(f"  Input size: {input_size}")
+        logger.info(f"  Output classes: {num_classes}")
+        logger.info(f"  C: {C}")
+        logger.info(f"  Kernel: {kernel}")
+        logger.info(f"  Gamma: {gamma}")
+        logger.info(f"  Device: {self.device}")
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass (prediction)
+        
+        Args:
+            x: Input tensor of shape (batch_size, input_size)
+            
+        Returns:
+            Logits tensor of shape (batch_size, num_classes)
+        """
+        if not self.is_fitted:
+            raise RuntimeError("SVM must be fitted before prediction")
+        
+        # Convert to numpy
+        x_np = x.detach().cpu().numpy()
+        
+        # Get predictions
+        if self.probability:
+            # Get probability estimates
+            probs = self.svm.predict_proba(x_np)
+            # Convert to logits (approximate)
+            probs = np.clip(probs, 1e-7, 1 - 1e-7)
+            logits = np.log(probs / (1 - probs))
+        else:
+            # Get decision function values
+            decision_values = self.svm.decision_function(x_np)
+            if decision_values.ndim == 1:
+                # Binary classification
+                logits = np.column_stack([-decision_values, decision_values])
+            else:
+                logits = decision_values
+        
+        return torch.tensor(logits, dtype=torch.float32, device=self.device)
+    
+    def fit_incremental(self, x: torch.Tensor, labels: torch.Tensor):
+        """
+        Fit SVM incrementally (collect data and refit)
+        
+        Args:
+            x: Input features
+            labels: Target labels
+        """
+        # Convert to numpy
+        x_np = x.detach().cpu().numpy()
+        labels_np = labels.detach().cpu().numpy()
+        
+        # Collect training data
+        if not hasattr(self, '_X_train'):
+            self._X_train = x_np
+            self._y_train = labels_np
+        else:
+            self._X_train = np.vstack([self._X_train, x_np])
+            self._y_train = np.concatenate([self._y_train, labels_np])
+        
+        # Fit SVM with all collected data
+        try:
+            self.svm.fit(self._X_train, self._y_train)
+            self.is_fitted = True
+        except Exception as e:
+            logger.warning(f"SVM fitting failed: {e}")
+    
+    def predict_proba(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Get prediction probabilities
+        
+        Args:
+            x: Input tensor
+            
+        Returns:
+            Probability tensor
+        """
+        if not self.is_fitted:
+            raise RuntimeError("SVM must be fitted before prediction")
+        
+        x_np = x.detach().cpu().numpy()
+        
+        if self.probability:
+            probs = self.svm.predict_proba(x_np)
+        else:
+            # Use decision function and convert to probabilities
+            decision_values = self.svm.decision_function(x_np)
+            if decision_values.ndim == 1:
+                probs = 1 / (1 + np.exp(-decision_values))
+                probs = np.column_stack([1 - probs, probs])
+            else:
+                probs = np.exp(decision_values) / np.sum(np.exp(decision_values), axis=1, keepdims=True)
+        
+        return torch.tensor(probs, dtype=torch.float32, device=self.device)
+    
+    def predict(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Get class predictions
+        
+        Args:
+            x: Input tensor
+            
+        Returns:
+            Predicted class indices
+        """
+        if not self.is_fitted:
+            raise RuntimeError("SVM must be fitted before prediction")
+        
+        x_np = x.detach().cpu().numpy()
+        predictions = self.svm.predict(x_np)
+        
+        return torch.tensor(predictions, dtype=torch.long, device=self.device)
+    
+    def get_support_vectors(self) -> Dict[str, np.ndarray]:
+        """
+        Get support vectors and related information
+        
+        Returns:
+            Dictionary containing support vector information
+        """
+        if not self.is_fitted:
+            raise RuntimeError("SVM must be fitted before getting support vectors")
+        
+        return {
+            'support_vectors': self.svm.support_vectors_,
+            'support_indices': self.svm.support_,
+            'n_support': self.svm.n_support_,
+            'dual_coef': self.svm.dual_coef_,
+            'intercept': self.svm.intercept_
+        }
+    
+    def get_feature_importance(self, normalize: bool = True) -> Optional[torch.Tensor]:
+        """
+        Get feature importance (only for linear kernel)
+        
+        Args:
+            normalize: Whether to normalize importance scores
+            
+        Returns:
+            Feature importance tensor (None for non-linear kernels)
+        """
+        if not self.is_fitted:
+            raise RuntimeError("SVM must be fitted before getting feature importance")
+        
+        if self.kernel != 'linear':
+            logger.warning("Feature importance only available for linear kernel")
+            return None
+        
+        # Get coefficients from linear SVM
+        coef = self.svm.coef_[0] if self.svm.coef_.shape[0] == 1 else self.svm.coef_.mean(axis=0)
+        importance = np.abs(coef)
+        
+        if normalize:
+            importance = importance / importance.sum()
+        
+        return torch.tensor(importance, dtype=torch.float32)
+    
+    def get_decision_function_values(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Get decision function values (distance to separating hyperplane)
+        
+        Args:
+            x: Input tensor
+            
+        Returns:
+            Decision function values
+        """
+        if not self.is_fitted:
+            raise RuntimeError("SVM must be fitted before getting decision values")
+        
+        x_np = x.detach().cpu().numpy()
+        decision_values = self.svm.decision_function(x_np)
+        
+        return torch.tensor(decision_values, dtype=torch.float32, device=self.device)
+    
+    def get_margin_analysis(self) -> Dict[str, Any]:
+        """
+        Analyze SVM margins and support vectors
+        
+        Returns:
+            Dictionary containing margin analysis
+        """
+        if not self.is_fitted:
+            raise RuntimeError("SVM must be fitted before margin analysis")
+        
+        support_info = self.get_support_vectors()
+        
+        # Calculate margin (for binary classification)
+        if self.kernel == 'linear' and self.num_classes == 2:
+            w = self.svm.coef_[0]
+            margin = 2.0 / np.linalg.norm(w)
+        else:
+            margin = None
+        
+        analysis = {
+            'num_support_vectors': len(support_info['support_vectors']),
+            'support_vector_ratio': len(support_info['support_vectors']) / len(self._X_train) if hasattr(self, '_X_train') else None,
+            'margin_width': margin,
+            'n_support_per_class': support_info['n_support'],
+            'kernel_type': self.kernel,
+            'C_parameter': self.C
+        }
+        
+        return analysis
+    
+    def visualize_decision_boundary_2d(
+        self, 
+        X: np.ndarray, 
+        y: np.ndarray, 
+        feature_indices: Tuple[int, int] = (0, 1),
+        save_path: Optional[Path] = None
+    ) -> plt.Figure:
+        """
+        Visualize decision boundary in 2D (for visualization purposes)
+        
+        Args:
+            X: Feature matrix
+            y: Labels
+            feature_indices: Which two features to plot
+            save_path: Path to save the plot
+            
+        Returns:
+            Matplotlib figure
+        """
+        if not self.is_fitted:
+            raise RuntimeError("SVM must be fitted before visualization")
+        
+        # Select two features for visualization
+        X_2d = X[:, feature_indices]
+        
+        # Create a mesh
+        h = 0.02
+        x_min, x_max = X_2d[:, 0].min() - 1, X_2d[:, 0].max() + 1
+        y_min, y_max = X_2d[:, 1].min() - 1, X_2d[:, 1].max() + 1
+        xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                            np.arange(y_min, y_max, h))
+        
+        # Create a temporary SVM for 2D visualization
+        temp_svm = SVC(C=self.C, kernel=self.kernel, gamma=self.gamma)
+        temp_svm.fit(X_2d, y)
+        
+        # Get decision boundary
+        Z = temp_svm.decision_function(np.c_[xx.ravel(), yy.ravel()])
+        Z = Z.reshape(xx.shape)
+        
+        # Plot
+        fig, ax = plt.subplots(figsize=(10, 8))
+        
+        # Decision boundary
+        ax.contour(xx, yy, Z, levels=[0], alpha=0.8, linestyles='--', colors='black')
+        ax.contourf(xx, yy, Z, levels=50, alpha=0.3, cmap=plt.cm.RdYlBu)
+        
+        # Data points
+        scatter = ax.scatter(X_2d[:, 0], X_2d[:, 1], c=y, cmap=plt.cm.RdYlBu, edgecolors='black')
+        
+        # Support vectors
+        if hasattr(temp_svm, 'support_vectors_'):
+            ax.scatter(temp_svm.support_vectors_[:, 0], temp_svm.support_vectors_[:, 1],
+                      s=100, facecolors='none', edgecolors='black', linewidths=2,
+                      label='Support Vectors')
+        
+        ax.set_xlabel(f'Feature {feature_indices[0]}')
+        ax.set_ylabel(f'Feature {feature_indices[1]}')
+        ax.set_title(f'SVM Decision Boundary ({self.kernel} kernel)')
+        ax.legend()
+        plt.colorbar(scatter)
+        
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        
+        return fig
+    
+    def visualize_feature_importance(
+        self, 
+        feature_names: Optional[List[str]] = None,
+        top_k: int = 20,
+        save_path: Optional[Path] = None
+    ) -> Optional[plt.Figure]:
+        """
+        Visualize feature importance (only for linear kernel)
+        
+        Args:
+            feature_names: Names of features
+            top_k: Number of top features to show
+            save_path: Path to save the plot
+            
+        Returns:
+            Matplotlib figure or None if not linear kernel
+        """
+        importance = self.get_feature_importance()
+        
+        if importance is None:
+            logger.warning("Feature importance visualization only available for linear kernel")
+            return None
+        
+        # Get top k features
+        top_indices = torch.topk(importance, min(top_k, len(importance))).indices
+        top_importance = importance[top_indices]
+        
+        # Create feature names if not provided
+        if feature_names is None:
+            feature_names = [f'Feature_{i}' for i in range(len(importance))]
+        
+        top_names = [feature_names[i] for i in top_indices]
+        
+        # Plot
+        fig, ax = plt.subplots(figsize=(10, 6))
+        bars = ax.barh(range(len(top_importance)), top_importance.numpy())
+        ax.set_yticks(range(len(top_importance)))
+        ax.set_yticklabels(top_names)
+        ax.set_xlabel('Feature Importance (|coefficient|)')
+        ax.set_title(f'SVM Feature Importance (Linear Kernel) - Top {len(top_importance)}')
+        
+        # Add value labels
+        for i, (bar, val) in enumerate(zip(bars, top_importance)):
+            ax.text(val + 0.001, bar.get_y() + bar.get_height()/2, 
+                   f'{val:.4f}', ha='left', va='center')
+        
+        ax.grid(True, alpha=0.3)
+        plt.tight_layout()
+        
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        
+        return fig
+    
+    def save_model(self, path: str):
+        """Save SVM model"""
+        if self.is_fitted:
+            joblib.dump(self.svm, path)
+            logger.info(f"SVM model saved to {path}")
+        else:
+            logger.warning("Cannot save unfitted SVM model")
+    
+    def load_model(self, path: str):
+        """Load SVM model"""
+        try:
+            self.svm = joblib.load(path)
+            self.is_fitted = True
+            logger.info(f"SVM model loaded from {path}")
+        except Exception as e:
+            logger.error(f"Failed to load SVM model: {e}")
+    
+    def get_model_summary(self) -> Dict[str, Any]:
+        """
+        Get comprehensive model summary
+        
+        Returns:
+            Dictionary containing model information
+        """
+        summary = {
+            'classifier_type': 'svm',
+            'total_parameters': 0,  # SVM doesn't have traditional parameters
+            'trainable_parameters': 0,
+            'input_size': self.input_size,
+            'num_classes': self.num_classes,
+            'is_fitted': self.is_fitted,
+            'device': str(self.device),
+            'hyperparameters': {
+                'C': self.C,
+                'kernel': self.kernel,
+                'gamma': self.gamma,
+                'degree': self.degree if self.kernel == 'poly' else None,
+                'coef0': self.coef0,
+                'probability': self.probability
+            }
+        }
+        
+        if self.is_fitted:
+            support_info = self.get_support_vectors()
+            summary.update({
+                'num_support_vectors': len(support_info['support_vectors']),
+                'support_vector_ratio': len(support_info['support_vectors']) / len(self._X_train) if hasattr(self, '_X_train') else None,
+                'training_samples': len(self._X_train) if hasattr(self, '_X_train') else None
+            })
+            
+            # Add margin analysis for linear kernel
+            if self.kernel == 'linear':
+                margin_analysis = self.get_margin_analysis()
+                summary['margin_analysis'] = margin_analysis
+        
+        return summary
+
+
 class InterpretableClassifierFactory:
     """
     Factory class for creating interpretable classifiers
@@ -632,6 +1088,19 @@ class InterpretableClassifierFactory:
     ) -> DecisionTreeClassifier:
         """Create a Decision Tree classifier"""
         return DecisionTreeClassifier(
+            input_size=input_size,
+            num_classes=num_classes,
+            **kwargs
+        )
+    
+    @staticmethod
+    def create_svm_classifier(
+        input_size: int,
+        num_classes: int = 2,
+        **kwargs
+    ) -> SVMClassifier:
+        """Create an SVM classifier"""
+        return SVMClassifier(
             input_size=input_size,
             num_classes=num_classes,
             **kwargs
