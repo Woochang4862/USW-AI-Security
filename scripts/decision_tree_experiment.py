@@ -97,85 +97,63 @@ class DecisionTreeExperimentRunner:
         model, model_summary = self.create_decision_tree_model()
         data_module = self.prepare_data()
         
-        # Decision Tree는 gradient 기반 학습을 하지 않으므로 optimizer 불필요
-        # optimizer와 scheduler는 backbone (BERT, BEiT) 부분만을 위한 것
-        backbone_params = []
-        for name, param in model.named_parameters():
-            if 'interpretable_classifier' not in name:  # backbone만
-                backbone_params.append(param)
+        # Decision Tree 전용 훈련: 2단계 접근법
+        # 1단계: 특성 추출 및 Decision Tree 훈련
+        # 2단계: 성능 평가
         
-        optimizer = torch.optim.AdamW(
-            backbone_params,  # Decision Tree 분류기 제외
-            lr=1e-4,
-            weight_decay=1e-4,  
-            betas=(0.9, 0.999)
-        )
+        logger.info("🔄 1단계: Decision Tree 데이터 수집 및 훈련")
         
-        # 학습률 스케줄러
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, mode='max', factor=0.7, patience=3, verbose=True
-        )
-        
-        criterion = torch.nn.CrossEntropyLoss()
+        # Freeze backbone for feature extraction
+        model.eval()
+        for param in model.parameters():
+            if 'interpretable_classifier' not in param:
+                param.requires_grad = False
         
         # 훈련 설정
-        num_epochs = 8  # Decision Tree는 더 빠르게 수렴
-        best_val_accuracy = 0.0
-        best_model_state = None
+        num_epochs = 3  # Decision Tree는 빠른 데이터 수집만 필요
         training_history = []
-        patience_counter = 0
-        early_stop_patience = 4
         
         start_time = time.time()
         
+        # 전체 데이터를 한 번에 처리하여 Decision Tree 훈련
+        train_loader = data_module.train_dataloader()
+        
         for epoch in range(num_epochs):
-            logger.info(f"📚 에포크 {epoch + 1}/{num_epochs}")
+            logger.info(f"📚 에포크 {epoch + 1}/{num_epochs} - 데이터 수집 및 Decision Tree 훈련")
             
-            # Training phase
-            model.train()
-            train_loss = 0.0
             train_correct = 0
             train_total = 0
-            train_loader = data_module.train_dataloader()
             
             for batch_idx, batch in enumerate(train_loader):
                 # Move to device
                 batch = {k: v.to(self.device) if isinstance(v, torch.Tensor) else v 
                         for k, v in batch.items()}
                 
-                # Forward pass (Decision Tree는 fit_incremental이 내부에서 호출됨)
-                outputs = model(**batch)
+                # Extract features only (no gradient computation)
+                with torch.no_grad():
+                    features = model.extract_features(
+                        input_ids=batch['input_ids'],
+                        attention_mask=batch['attention_mask'],
+                        pixel_values=batch['pixel_values']
+                    )
                 
-                # Decision Tree의 경우 loss는 피팅 이후에만 의미가 있음
-                if outputs.loss is not None:
-                    loss = outputs.loss
-                    
-                    # Backbone만 업데이트 (Decision Tree는 fit_incremental로 별도 학습)
-                    if len(backbone_params) > 0:
-                        optimizer.zero_grad()
-                        loss.backward()
-                        torch.nn.utils.clip_grad_norm_(backbone_params, 1.0)
-                        optimizer.step()
-                    
-                    train_loss += loss.item()
-                else:
-                    # Decision Tree가 아직 피팅되지 않은 경우 더미 loss
-                    train_loss += 0.0
+                # Train Decision Tree incrementally
+                model.interpretable_classifier.fit_incremental(features, batch['labels'])
                 
-                # Statistics
-                predictions = torch.argmax(outputs.logits, dim=1)
-                train_correct += (predictions == batch['labels']).sum().item()
-                train_total += batch['labels'].size(0)
+                # Get predictions after fitting
+                with torch.no_grad():
+                    logits = model.interpretable_classifier(features)
+                    predictions = torch.argmax(logits, dim=1)
+                    train_correct += (predictions == batch['labels']).sum().item()
+                    train_total += batch['labels'].size(0)
                 
                 # 로깅
                 if batch_idx % 80 == 0:
                     current_acc = train_correct / train_total if train_total > 0 else 0
-                    current_loss = loss.item() if outputs.loss is not None else 0.0
-                    logger.info(f"  배치 {batch_idx}: 손실 {current_loss:.4f}, 정확도 {current_acc:.4f}")
+                    logger.info(f"  배치 {batch_idx}: 정확도 {current_acc:.4f}")
             
             # Validation phase
-            model.eval()
-            val_loss = 0.0
+            logger.info("🔍 검증 단계")
             val_correct = 0
             val_total = 0
             
@@ -185,73 +163,89 @@ class DecisionTreeExperimentRunner:
                     batch = {k: v.to(self.device) if isinstance(v, torch.Tensor) else v 
                             for k, v in batch.items()}
                     
-                    outputs = model(**batch)
+                    # Extract features
+                    features = model.extract_features(
+                        input_ids=batch['input_ids'],
+                        attention_mask=batch['attention_mask'],
+                        pixel_values=batch['pixel_values']
+                    )
                     
-                    if outputs.loss is not None:
-                        val_loss += outputs.loss.item()
-                    
-                    predictions = torch.argmax(outputs.logits, dim=1)
+                    # Get predictions
+                    logits = model.interpretable_classifier(features)
+                    predictions = torch.argmax(logits, dim=1)
                     val_correct += (predictions == batch['labels']).sum().item()
                     val_total += batch['labels'].size(0)
             
             # Calculate metrics
             train_accuracy = train_correct / train_total
             val_accuracy = val_correct / val_total
-            avg_train_loss = train_loss / len(train_loader) if len(train_loader) > 0 else 0.0
-            avg_val_loss = val_loss / len(val_loader) if len(val_loader) > 0 else 0.0
-            
-            # Learning rate scheduling (backbone만)
-            if len(backbone_params) > 0:
-                scheduler.step(val_accuracy)
-            
-            # Save best model
-            if val_accuracy > best_val_accuracy:
-                best_val_accuracy = val_accuracy
-                best_model_state = model.state_dict().copy()
-                patience_counter = 0
-                logger.info(f"  🎯 새로운 최고 검증 정확도: {val_accuracy:.4f}")
-            else:
-                patience_counter += 1
             
             # Log results
             epoch_results = {
                 'epoch': epoch + 1,
-                'train_loss': avg_train_loss,
+                'train_loss': 0.0,  # Decision Tree doesn't use loss
                 'train_accuracy': train_accuracy,
-                'val_loss': avg_val_loss,
+                'val_loss': 0.0,    # Decision Tree doesn't use loss
                 'val_accuracy': val_accuracy,
-                'learning_rate': optimizer.param_groups[0]['lr'] if len(backbone_params) > 0 else 0.0
+                'learning_rate': 0.0  # No gradient-based learning
             }
             training_history.append(epoch_results)
             
             logger.info(f"  훈련 정확도: {train_accuracy:.4f}, 검증 정확도: {val_accuracy:.4f}")
-            if len(backbone_params) > 0:
-                logger.info(f"  학습률: {optimizer.param_groups[0]['lr']:.2e}")
             
-            # Early stopping
-            if patience_counter >= early_stop_patience:
-                logger.info(f"🛑 조기 종료: {early_stop_patience} 에포크 동안 개선 없음")
+            # Decision Tree는 데이터가 충분하면 일찍 종료 가능
+            if epoch >= 1 and val_accuracy > 0.8:  # 기본 성능이 나오면 종료
+                logger.info(f"✅ Decision Tree 충분히 훈련됨 (검증 정확도: {val_accuracy:.4f})")
                 break
         
-        # Load best model
-        if best_model_state is not None:
-            model.load_state_dict(best_model_state)
-            logger.info(f"✅ 최고 성능 모델 로드 완료")
-        
         training_time = time.time() - start_time
+        
+        # Final validation
+        best_val_accuracy = val_accuracy
+        
+        # 2단계: 최종 성능 검증
+        logger.info("🔄 2단계: 최종 Decision Tree 성능 검증")
+        
+        final_val_correct = 0
+        final_val_total = 0
+        
+        val_loader = data_module.val_dataloader()
+        with torch.no_grad():
+            for batch in val_loader:
+                batch = {k: v.to(self.device) if isinstance(v, torch.Tensor) else v 
+                        for k, v in batch.items()}
+                
+                # Extract features
+                features = model.extract_features(
+                    input_ids=batch['input_ids'],
+                    attention_mask=batch['attention_mask'],
+                    pixel_values=batch['pixel_values']
+                )
+                
+                # Get predictions
+                logits = model.interpretable_classifier(features)
+                predictions = torch.argmax(logits, dim=1)
+                final_val_correct += (predictions == batch['labels']).sum().item()
+                final_val_total += batch['labels'].size(0)
+        
+        final_val_accuracy = final_val_correct / final_val_total
+        best_val_accuracy = max(best_val_accuracy, final_val_accuracy)
         
         training_results = {
             'training_history': training_history,
             'best_val_accuracy': best_val_accuracy,
+            'final_val_accuracy': final_val_accuracy,
             'total_training_time': training_time,
             'epochs_trained': epoch + 1,
-            'early_stopped': patience_counter >= early_stop_patience,
-            'backbone_parameters': len(backbone_params),
-            'decision_tree_fitted': hasattr(model.interpretable_classifier, 'is_fitted') and model.interpretable_classifier.is_fitted
+            'early_stopped': False,
+            'backbone_parameters': 0,  # Backbone은 freeze됨
+            'decision_tree_fitted': hasattr(model.interpretable_classifier, 'is_fitted') and model.interpretable_classifier.is_fitted,
+            'training_method': 'feature_extraction_and_decision_tree_fitting'
         }
         
         logger.info(f"⏱️ 훈련 완료: {training_time:.2f}초")
         logger.info(f"📈 최고 검증 정확도: {best_val_accuracy:.4f}")
+        logger.info(f"📊 최종 검증 정확도: {final_val_accuracy:.4f}")
         logger.info(f"🌳 Decision Tree 피팅 상태: {training_results['decision_tree_fitted']}")
         
         return model, training_results, model_summary
