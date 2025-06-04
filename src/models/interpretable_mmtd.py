@@ -16,7 +16,7 @@ import os
 # Add src directory to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from models.interpretable_classifiers import LogisticRegressionClassifier
+from models.interpretable_classifiers import LogisticRegressionClassifier, DecisionTreeClassifier
 from evaluation.original_mmtd_model import OriginalMMTD
 from transformers.models.bert.modeling_bert import SequenceClassifierOutput
 
@@ -105,8 +105,12 @@ class InterpretableMMTD(nn.Module):
                 **kwargs
             )
         elif classifier_type == "decision_tree":
-            # Placeholder for future implementation
-            raise NotImplementedError("Decision Tree classifier not yet implemented")
+            return DecisionTreeClassifier(
+                input_size=input_size,
+                num_classes=num_classes,
+                device=device,
+                **kwargs
+            )
         elif classifier_type == "attention":
             # Placeholder for future implementation
             raise NotImplementedError("Attention classifier not yet implemented")
@@ -190,6 +194,12 @@ class InterpretableMMTD(nn.Module):
             pixel_values=pixel_values
         )
         
+        # For Decision Tree: Fit incrementally during training
+        if (self.classifier_type == "decision_tree" and 
+            labels is not None and 
+            hasattr(self.interpretable_classifier, 'fit_incremental')):
+            self.interpretable_classifier.fit_incremental(pooled_features, labels)
+        
         # Classification through interpretable classifier
         logits = self.interpretable_classifier(pooled_features)
         
@@ -200,15 +210,12 @@ class InterpretableMMTD(nn.Module):
                 # Use classifier's custom loss (includes regularization)
                 loss = self.interpretable_classifier.compute_loss(logits, labels)
             else:
-                # Fallback to standard cross-entropy
-                loss_fct = nn.CrossEntropyLoss()
-                loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+                # Use standard cross-entropy loss
+                loss = F.cross_entropy(logits, labels)
         
         return SequenceClassifierOutput(
             loss=loss,
-            logits=logits,
-            hidden_states=None,
-            attentions=None,
+            logits=logits
         )
     
     def get_feature_importance(self, **kwargs) -> torch.Tensor:
@@ -216,7 +223,26 @@ class InterpretableMMTD(nn.Module):
         if hasattr(self.interpretable_classifier, 'get_feature_importance'):
             return self.interpretable_classifier.get_feature_importance(**kwargs)
         else:
-            raise NotImplementedError(f"Feature importance not implemented for {self.classifier_type}")
+            logger.warning(f"Feature importance not available for {self.classifier_type}")
+            return torch.zeros(768)  # Return zero importance if not available
+    
+    def get_decision_tree_rules(self) -> List[str]:
+        """Get decision tree rules (only for decision tree classifier)"""
+        if (self.classifier_type == "decision_tree" and 
+            hasattr(self.interpretable_classifier, 'get_decision_tree_rules')):
+            return self.interpretable_classifier.get_decision_tree_rules()
+        else:
+            logger.warning("Decision tree rules only available for decision tree classifier")
+            return []
+    
+    def get_tree_structure(self) -> Dict[str, Any]:
+        """Get tree structure (only for decision tree classifier)"""
+        if (self.classifier_type == "decision_tree" and 
+            hasattr(self.interpretable_classifier, 'get_tree_structure')):
+            return self.interpretable_classifier.get_tree_structure()
+        else:
+            logger.warning("Tree structure only available for decision tree classifier")
+            return {}
     
     def visualize_feature_importance(self, **kwargs):
         """Visualize feature importance"""
