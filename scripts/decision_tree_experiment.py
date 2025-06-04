@@ -97,10 +97,16 @@ class DecisionTreeExperimentRunner:
         model, model_summary = self.create_decision_tree_model()
         data_module = self.prepare_data()
         
-        # Decision Tree에 최적화된 훈련 설정
+        # Decision Tree는 gradient 기반 학습을 하지 않으므로 optimizer 불필요
+        # optimizer와 scheduler는 backbone (BERT, BEiT) 부분만을 위한 것
+        backbone_params = []
+        for name, param in model.named_parameters():
+            if 'interpretable_classifier' not in name:  # backbone만
+                backbone_params.append(param)
+        
         optimizer = torch.optim.AdamW(
-            model.parameters(), 
-            lr=1e-4,           # Decision Tree는 더 높은 학습률 가능
+            backbone_params,  # Decision Tree 분류기 제외
+            lr=1e-4,
             weight_decay=1e-4,  
             betas=(0.9, 0.999)
         )
@@ -113,12 +119,12 @@ class DecisionTreeExperimentRunner:
         criterion = torch.nn.CrossEntropyLoss()
         
         # 훈련 설정
-        num_epochs = 12
+        num_epochs = 8  # Decision Tree는 더 빠르게 수렴
         best_val_accuracy = 0.0
         best_model_state = None
         training_history = []
         patience_counter = 0
-        early_stop_patience = 5
+        early_stop_patience = 4
         
         start_time = time.time()
         
@@ -137,18 +143,26 @@ class DecisionTreeExperimentRunner:
                 batch = {k: v.to(self.device) if isinstance(v, torch.Tensor) else v 
                         for k, v in batch.items()}
                 
-                # Forward pass
-                optimizer.zero_grad()
+                # Forward pass (Decision Tree는 fit_incremental이 내부에서 호출됨)
                 outputs = model(**batch)
-                loss = outputs.loss
                 
-                # Backward pass
-                loss.backward()
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-                optimizer.step()
+                # Decision Tree의 경우 loss는 피팅 이후에만 의미가 있음
+                if outputs.loss is not None:
+                    loss = outputs.loss
+                    
+                    # Backbone만 업데이트 (Decision Tree는 fit_incremental로 별도 학습)
+                    if len(backbone_params) > 0:
+                        optimizer.zero_grad()
+                        loss.backward()
+                        torch.nn.utils.clip_grad_norm_(backbone_params, 1.0)
+                        optimizer.step()
+                    
+                    train_loss += loss.item()
+                else:
+                    # Decision Tree가 아직 피팅되지 않은 경우 더미 loss
+                    train_loss += 0.0
                 
                 # Statistics
-                train_loss += loss.item()
                 predictions = torch.argmax(outputs.logits, dim=1)
                 train_correct += (predictions == batch['labels']).sum().item()
                 train_total += batch['labels'].size(0)
@@ -156,7 +170,8 @@ class DecisionTreeExperimentRunner:
                 # 로깅
                 if batch_idx % 80 == 0:
                     current_acc = train_correct / train_total if train_total > 0 else 0
-                    logger.info(f"  배치 {batch_idx}: 손실 {loss.item():.4f}, 정확도 {current_acc:.4f}")
+                    current_loss = loss.item() if outputs.loss is not None else 0.0
+                    logger.info(f"  배치 {batch_idx}: 손실 {current_loss:.4f}, 정확도 {current_acc:.4f}")
             
             # Validation phase
             model.eval()
@@ -171,9 +186,10 @@ class DecisionTreeExperimentRunner:
                             for k, v in batch.items()}
                     
                     outputs = model(**batch)
-                    loss = outputs.loss
                     
-                    val_loss += loss.item()
+                    if outputs.loss is not None:
+                        val_loss += outputs.loss.item()
+                    
                     predictions = torch.argmax(outputs.logits, dim=1)
                     val_correct += (predictions == batch['labels']).sum().item()
                     val_total += batch['labels'].size(0)
@@ -181,11 +197,12 @@ class DecisionTreeExperimentRunner:
             # Calculate metrics
             train_accuracy = train_correct / train_total
             val_accuracy = val_correct / val_total
-            avg_train_loss = train_loss / len(train_loader)
-            avg_val_loss = val_loss / len(val_loader)
+            avg_train_loss = train_loss / len(train_loader) if len(train_loader) > 0 else 0.0
+            avg_val_loss = val_loss / len(val_loader) if len(val_loader) > 0 else 0.0
             
-            # Learning rate scheduling
-            scheduler.step(val_accuracy)
+            # Learning rate scheduling (backbone만)
+            if len(backbone_params) > 0:
+                scheduler.step(val_accuracy)
             
             # Save best model
             if val_accuracy > best_val_accuracy:
@@ -203,12 +220,13 @@ class DecisionTreeExperimentRunner:
                 'train_accuracy': train_accuracy,
                 'val_loss': avg_val_loss,
                 'val_accuracy': val_accuracy,
-                'learning_rate': optimizer.param_groups[0]['lr']
+                'learning_rate': optimizer.param_groups[0]['lr'] if len(backbone_params) > 0 else 0.0
             }
             training_history.append(epoch_results)
             
             logger.info(f"  훈련 정확도: {train_accuracy:.4f}, 검증 정확도: {val_accuracy:.4f}")
-            logger.info(f"  학습률: {optimizer.param_groups[0]['lr']:.2e}")
+            if len(backbone_params) > 0:
+                logger.info(f"  학습률: {optimizer.param_groups[0]['lr']:.2e}")
             
             # Early stopping
             if patience_counter >= early_stop_patience:
@@ -227,11 +245,14 @@ class DecisionTreeExperimentRunner:
             'best_val_accuracy': best_val_accuracy,
             'total_training_time': training_time,
             'epochs_trained': epoch + 1,
-            'early_stopped': patience_counter >= early_stop_patience
+            'early_stopped': patience_counter >= early_stop_patience,
+            'backbone_parameters': len(backbone_params),
+            'decision_tree_fitted': hasattr(model.interpretable_classifier, 'is_fitted') and model.interpretable_classifier.is_fitted
         }
         
         logger.info(f"⏱️ 훈련 완료: {training_time:.2f}초")
         logger.info(f"📈 최고 검증 정확도: {best_val_accuracy:.4f}")
+        logger.info(f"🌳 Decision Tree 피팅 상태: {training_results['decision_tree_fitted']}")
         
         return model, training_results, model_summary
     
