@@ -105,8 +105,8 @@ class DecisionTreeExperimentRunner:
         
         # Freeze backbone for feature extraction
         model.eval()
-        for param in model.parameters():
-            if 'interpretable_classifier' not in param:
+        for name, param in model.named_parameters():
+            if 'interpretable_classifier' not in name:
                 param.requires_grad = False
         
         # 훈련 설정
