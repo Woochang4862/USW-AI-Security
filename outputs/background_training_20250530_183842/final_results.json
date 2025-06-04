@@ -1,0 +1,61 @@
+{
+  "model_summary": {
+    "model_type": "InterpretableMMTD",
+    "classifier_type": "logistic_regression",
+    "total_parameters": 269182216,
+    "trainable_parameters": 269182216,
+    "backbone_parameters": 269180678,
+    "classifier_parameters": 1538,
+    "device": "mps",
+    "classifier_info": {
+      "model_type": "LogisticRegression",
+      "input_size": 768,
+      "num_classes": 2,
+      "num_parameters": 1538,
+      "trainable_parameters": 1538,
+      "l1_lambda": 0.001,
+      "l2_lambda": 0.01,
+      "weight_l1_norm": 68.22102355957031,
+      "weight_l2_norm": 1.9965568780899048,
+      "device": "mps"
+    }
+  },
+  "evaluation_results": {
+    "accuracy": 0.56,
+    "loss": 0.7777555271198875,
+    "correct": 84,
+    "total": 150
+  },
+  "training_history": [
+    {
+      "epoch": 1,
+      "step": 175,
+      "train_loss": 0.8929628436480249,
+      "train_accuracy": 0.5685714285714286,
+      "learning_rate": 7.500000000000001e-05,
+      "epoch_time": 100.06840491294861,
+      "timestamp": "2025-05-30T18:40:33.506301"
+    },
+    {
+      "epoch": 2,
+      "step": 350,
+      "train_loss": 0.8723781447751181,
+      "train_accuracy": 0.4928571428571429,
+      "learning_rate": 2.5000000000000015e-05,
+      "epoch_time": 99.03872227668762,
+      "timestamp": "2025-05-30T18:42:12.546491"
+    },
+    {
+      "epoch": 3,
+      "step": 525,
+      "train_loss": 0.83021331514631,
+      "train_accuracy": 0.48714285714285716,
+      "learning_rate": 0.0,
+      "epoch_time": 131.62118864059448,
+      "timestamp": "2025-05-30T18:44:24.170079"
+    }
+  ],
+  "total_training_time": 373.7830741405487,
+  "best_accuracy": 0.56,
+  "timestamp": "2025-05-30T18:44:58.608247"
+}

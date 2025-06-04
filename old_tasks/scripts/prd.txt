@@ -1,0 +1,58 @@
+Product Requirements Document: 멀티모달 기반 텍스트-이미지 스팸 탐지 모델 연구
+
+1. 프로젝트 개요
+목표: 텍스트 임베딩과 SVM 해석을 통한 설명 가능한 멀티모달 스팸 메일 탐지 모델 개발
+부제: CountVectorizer의 한계를 넘어 의미론적 분석 강화
+
+2. 핵심 요구사항
+
+2.1 데이터 수집 및 전처리
+- Dredze Email Dataset 수집 및 구성
+- SpamAssassin Public Corpus 데이터 통합
+- Enron Spam Dataset 통합
+- Flickr 8K Dataset을 활용한 이미지 캡션 생성 모델 학습 데이터 구성
+- 데이터 전처리 파이프라인 구축 (텍스트 정규화, 이미지 처리)
+
+2.2 모델 개발
+- VGG16 기반 이미지 특징 추출 모듈 구현
+- LSTM 기반 이미지 캡션 생성기 개발
+- 네이버 클로바 OCR 통합
+- BERT/RoBERTa 기반 텍스트 임베딩 모듈 구현
+- SVM 분류기 구현 및 최적화
+- 멀티모달 통합 파이프라인 구축
+
+2.3 모델 해석 및 설명 가능성
+- LIME 분석 도구 통합
+- SHAP 값 분석 기능 구현
+- 특징 중요도 시각화 도구 개발
+
+2.4 성능 평가 및 검증
+- 평가 지표 구현 (Accuracy, Precision, Recall, F1-Score)
+- 기준 모델(Baseline) 구현 및 비교 실험
+- 이미지 기반 우회 시나리오 테스트
+
+3. 기술 스택
+- Python 3.11.4
+- TensorFlow 2.10.x
+- Hugging Face Transformers
+- scikit-learn
+- OpenCV
+- LIME/SHAP
+
+4. 시스템 요구사항
+- Windows 11 OS
+- 16GB RAM 이상
+- NVIDIA GPU (CUDA 지원)
+
+5. 산출물
+- 데이터 전처리 파이프라인
+- 멀티모달 스팸 탐지 모델
+- 모델 해석 도구
+- 성능 평가 보고서
+- 기술 문서
+
+6. 성공 기준
+- 기존 텍스트 기반 모델 대비 성능 향상
+- 이미지 기반 우회 시도 탐지 성공률 향상
+- 모델 판단 근거의 설명 가능성 확보
+- 실시간 처리 가능한 수준의 성능 확보 

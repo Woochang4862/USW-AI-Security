@@ -1,0 +1,25 @@
+✅ Created background script: run_background_training.sh
+2025-05-30 18:37:58,443 - INFO - 📝 Logging setup complete
+2025-05-30 18:37:58,443 - INFO - 📄 Detailed log: outputs/background_training_20250530_183756/logs/training_20250530_183758.log
+2025-05-30 18:37:58,443 - INFO - 📊 Progress log: outputs/background_training_20250530_183756/logs/progress_20250530_183758.log
+2025-05-30 18:37:58,443 - INFO - 🚀 BackgroundTrainer initialized
+2025-05-30 18:37:58,443 - INFO - 📁 Output directory: outputs/background_training_20250530_183756
+2025-05-30 18:37:58,443 - INFO - 🎯 Starting logistic_regression training
+2025-05-30 18:37:58,454 - INFO - 💻 Using device: mps
+2025-05-30 18:37:58,454 - INFO - 🏗️ Creating interpretable MMTD model...
+Unexpected keys: ['pooler.0.weight', 'pooler.0.bias', 'text_encoder.bert.embeddings.position_ids']
+2025-05-30 18:38:05,123 - INFO - 📊 Model created: 269,182,216 parameters
+2025-05-30 18:38:05,123 - INFO - 🧠 Classifier: 1,538 parameters
+2025-05-30 18:38:05,123 - INFO - 📚 Loading data...
+Traceback (most recent call last):
+  File "/Users/jeong-uchang/USW-AI-Security/scripts/background_training.py", line 457, in <module>
+    main()
+  File "/Users/jeong-uchang/USW-AI-Security/scripts/background_training.py", line 439, in main
+    model, results = trainer.train_interpretable_mmtd(
+  File "/Users/jeong-uchang/USW-AI-Security/scripts/background_training.py", line 181, in train_interpretable_mmtd
+    data_module = create_mmtd_data_module(
+  File "/Users/jeong-uchang/USW-AI-Security/scripts/../src/models/mmtd_data_loader.py", line 411, in create_mmtd_data_module
+    return MMTDDataModule(
+  File "/Users/jeong-uchang/USW-AI-Security/scripts/../src/models/mmtd_data_loader.py", line 291, in __init__
+    self.collator = MMTDCollator(**collator_kwargs)
+TypeError: MMTDCollator.__init__() got an unexpected keyword argument 'max_samples'

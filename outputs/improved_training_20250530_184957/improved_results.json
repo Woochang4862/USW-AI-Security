@@ -1,0 +1,42 @@
+{
+  "model_summary": {
+    "model_type": "InterpretableMMTD",
+    "classifier_type": "logistic_regression",
+    "total_parameters": 269182216,
+    "trainable_parameters": 1538,
+    "backbone_parameters": 269180678,
+    "classifier_parameters": 1538,
+    "device": "mps",
+    "classifier_info": {
+      "model_type": "LogisticRegression",
+      "input_size": 768,
+      "num_classes": 2,
+      "num_parameters": 1538,
+      "trainable_parameters": 1538,
+      "l1_lambda": 0.0001,
+      "l2_lambda": 0.001,
+      "weight_l1_norm": 36.63323974609375,
+      "weight_l2_norm": 1.2750599384307861,
+      "device": "mps"
+    }
+  },
+  "final_test_results": {
+    "loss": 0.004986712240931043,
+    "accuracy": 1.0
+  },
+  "best_validation_accuracy": 0.9986666666666667,
+  "training_history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.02249977782581534,
+      "train_accuracy": 0.9968571428571429,
+      "val_loss": 0.014990472700446844,
+      "val_accuracy": 0.9986666666666667,
+      "learning_rate": 0.001,
+      "epoch_time": 262.24620294570923,
+      "timestamp": "2025-05-30T18:54:31.982627"
+    }
+  ],
+  "total_training_time": 324.60040068626404,
+  "timestamp": "2025-05-30T18:55:24.510830"
+}

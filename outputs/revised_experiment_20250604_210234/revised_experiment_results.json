@@ -1,0 +1,81 @@
+{
+  "experiment_info": {
+    "timestamp": "2025-06-04T21:33:30.456575",
+    "device": "mps",
+    "model_type": "InterpretableMMTD_Revised",
+    "classifier_type": "logistic_regression",
+    "note": "Experiment with corrected pooler implementation"
+  },
+  "model_summary": {
+    "model_type": "InterpretableMMTD",
+    "classifier_type": "logistic_regression",
+    "total_parameters": 269772808,
+    "trainable_parameters": 269772808,
+    "backbone_parameters": 269771270,
+    "classifier_parameters": 1538,
+    "device": "mps",
+    "classifier_info": {
+      "model_type": "LogisticRegression",
+      "input_size": 768,
+      "num_classes": 2,
+      "num_parameters": 1538,
+      "trainable_parameters": 1538,
+      "l1_lambda": 0.0001,
+      "l2_lambda": 0.001,
+      "weight_l1_norm": 67.16407775878906,
+      "weight_l2_norm": 1.9875081777572632,
+      "device": "mps"
+    }
+  },
+  "training_results": {
+    "training_history": [
+      {
+        "epoch": 1,
+        "train_loss": 1.9219999507416126,
+        "train_accuracy": 0.4956395348837209,
+        "val_loss": 0.7826061248779297,
+        "val_accuracy": 0.56
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.770646543003792,
+        "train_accuracy": 0.5276162790697675,
+        "val_loss": 0.7137569103922162,
+        "val_accuracy": 0.56
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.7612572548001312,
+        "train_accuracy": 0.4941860465116279,
+        "val_loss": 0.6906492795263018,
+        "val_accuracy": 0.56
+      }
+    ],
+    "best_val_accuracy": 0.56,
+    "total_training_time": 1807.824909210205
+  },
+  "test_results": {
+    "accuracy": 0.575,
+    "loss": 0.6918221620412973,
+    "precision": 0.330625,
+    "recall": 0.575,
+    "f1_score": 0.4198412698412698,
+    "confusion_matrix": [
+      [
+        115,
+        0
+      ],
+      [
+        85,
+        0
+      ]
+    ]
+  },
+  "interpretability_analysis": {
+    "mean_importance": 0.0013020832557231188,
+    "max_importance": 0.0028550648130476475,
+    "min_importance": 1.801633698050864e-05,
+    "std_importance": 0.0006071294192224741,
+    "sparsity": 0.3229166567325592
+  }
+}

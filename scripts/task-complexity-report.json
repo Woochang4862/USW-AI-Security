@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "generatedAt": "2025-05-30T04:21:33.995Z",
+    "tasksAnalyzed": 15,
+    "totalTasks": 15,
+    "analysisCount": 15,
+    "thresholdScore": 6,
+    "projectName": "Taskmaster",
+    "usedResearch": true
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 1,
+      "taskTitle": "Setup Project Environment and Repository",
+      "complexityScore": 3,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the setup process into detailed steps for creating the repository, setting up the virtual environment, installing dependencies, and structuring the project.",
+      "reasoning": "This task is relatively straightforward but involves multiple steps. The complexity is low as these are common setup procedures."
+    },
+    {
+      "taskId": 2,
+      "taskTitle": "Data Preprocessing and Loading",
+      "complexityScore": 7,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Elaborate on each preprocessing step, including specific techniques for text and image processing, and detail the implementation of the DataLoader and cross-validation split.",
+      "reasoning": "This task involves complex data handling, multiple preprocessing steps, and considerations for multilingual data, increasing its complexity."
+    },
+    {
+      "taskId": 3,
+      "taskTitle": "Implement Base MMTD Model",
+      "complexityScore": 8,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the implementation of each model component (BERT, BEiT, Transformer Encoder) and detail the steps for integrating them into a unified model.",
+      "reasoning": "Implementing a complex multi-modal model with multiple pre-trained components and custom architecture is a high-complexity task."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "Implement Logistic Regression Classifier",
+      "complexityScore": 5,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Detail the steps for implementing the Logistic Regression module, including regularization and feature importance extraction methods.",
+      "reasoning": "While Logistic Regression is a simpler model, implementing it as a custom PyTorch module and integrating it with the complex MMTD model adds moderate complexity."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "Implement Decision Tree Classifier",
+      "complexityScore": 6,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Outline the process of wrapping the scikit-learn Decision Tree in a PyTorch module and integrating it with the MMTD model, including feature importance extraction.",
+      "reasoning": "Integrating a scikit-learn model with PyTorch and ensuring compatibility with the complex MMTD architecture increases the task's complexity."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "Implement Attention-based Classifier",
+      "complexityScore": 7,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the implementation of the multi-head self-attention mechanism and detail its integration with the MMTD model, including attention weight extraction methods.",
+      "reasoning": "Implementing a custom attention mechanism and integrating it with the existing architecture is a complex task requiring deep understanding of attention mechanisms."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "Implement Prototype-based Classifier",
+      "complexityScore": 8,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Detail the steps for implementing the prototype-based classification, including prototype learning, updating mechanisms, and visualization methods.",
+      "reasoning": "Prototype-based classification is a complex concept, and implementing it from scratch with PyTorch integration adds significant complexity."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "Implement LIME and SHAP Explanations",
+      "complexityScore": 7,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the integration of LIME and SHAP libraries, detailing the wrapper functions and visualization methods for each classifier type.",
+      "reasoning": "Integrating external interpretation libraries and ensuring compatibility with multiple classifiers is a complex task requiring deep understanding of both the models and the interpretation methods."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "Develop Performance Evaluation System",
+      "complexityScore": 6,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Detail the implementation of each evaluation metric, statistical test, and visualization method, including cross-validation result aggregation.",
+      "reasoning": "While individual metrics are straightforward, implementing a comprehensive system with multiple metrics, statistical tests, and visualizations adds moderate complexity."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "Implement Interpretability Metrics",
+      "complexityScore": 7,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the implementation of each interpretability metric, including sparsity measures, stability metrics, and the composite interpretability score.",
+      "reasoning": "Defining and implementing novel interpretability metrics requires deep understanding of interpretability concepts and adds significant complexity."
+    },
+    {
+      "taskId": 11,
+      "taskTitle": "Develop Experiment Management System",
+      "complexityScore": 6,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Detail the integration of wandb and mlflow, including the implementation of logging functions, visualization methods, and the unified experiment interface.",
+      "reasoning": "While experiment tracking libraries provide helpful tools, integrating them into a complex project and creating a unified interface adds moderate complexity."
+    },
+    {
+      "taskId": 12,
+      "taskTitle": "Implement Hyperparameter Optimization",
+      "complexityScore": 7,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the integration of Optuna, detailing the implementation of search spaces, objective functions, and parallel optimization strategies for each model.",
+      "reasoning": "Implementing effective hyperparameter optimization for multiple complex models requires careful consideration and adds significant complexity."
+    },
+    {
+      "taskId": 13,
+      "taskTitle": "Develop Modality Contribution Analysis",
+      "complexityScore": 8,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Detail the implementation of feature ablation studies, gradient-based attribution methods, and visualization techniques for both text and image modalities.",
+      "reasoning": "Analyzing contributions of different modalities in a complex multi-modal model is a highly complex task requiring deep understanding of the model architecture and interpretation techniques."
+    },
+    {
+      "taskId": 14,
+      "taskTitle": "Implement Interpretation Validation Framework",
+      "complexityScore": 7,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the design and implementation of the expert evaluation protocol, user studies, and statistical analysis methods for interpretation validation.",
+      "reasoning": "Designing and implementing a framework for human evaluation of model interpretations involves complex considerations for user interface design, data collection, and analysis."
+    },
+    {
+      "taskId": 15,
+      "taskTitle": "Prepare Final Analysis and Documentation",
+      "complexityScore": 5,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Detail the process of aggregating results, creating final visualizations, and preparing comprehensive documentation, including specific sections and visualizations to be included.",
+      "reasoning": "While this task requires careful attention to detail and clear communication, it is primarily a matter of organizing and presenting existing information, making it moderately complex."
+    }
+  ]
+}

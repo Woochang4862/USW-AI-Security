@@ -1,0 +1,28 @@
+✅ Created background script: run_background_training.sh
+2025-05-30 18:29:12,670 - INFO - 📝 Logging setup complete
+2025-05-30 18:29:12,670 - INFO - 📄 Detailed log: outputs/background_training_20250530_182910/logs/training_20250530_182912.log
+2025-05-30 18:29:12,670 - INFO - 📊 Progress log: outputs/background_training_20250530_182910/logs/progress_20250530_182912.log
+2025-05-30 18:29:12,670 - INFO - 🚀 BackgroundTrainer initialized
+2025-05-30 18:29:12,670 - INFO - 📁 Output directory: outputs/background_training_20250530_182910
+2025-05-30 18:29:12,670 - INFO - 🎯 Starting logistic_regression training
+2025-05-30 18:29:12,682 - INFO - 💻 Using device: mps
+2025-05-30 18:29:12,682 - INFO - 🏗️ Creating interpretable MMTD model...
+Some weights of BertForSequenceClassification were not initialized from the model checkpoint at bert-base-multilingual-cased and are newly initialized: ['classifier.bias', 'classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Some weights of BeitForImageClassification were not initialized from the model checkpoint at microsoft/dit-base and are newly initialized: ['beit.pooler.layernorm.bias', 'beit.pooler.layernorm.weight', 'classifier.bias', 'classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Traceback (most recent call last):
+  File "/Users/jeong-uchang/USW-AI-Security/scripts/background_training.py", line 456, in <module>
+    main()
+  File "/Users/jeong-uchang/USW-AI-Security/scripts/background_training.py", line 438, in main
+    model, results = trainer.train_interpretable_mmtd(
+  File "/Users/jeong-uchang/USW-AI-Security/scripts/background_training.py", line 168, in train_interpretable_mmtd
+    model = create_interpretable_mmtd(
+  File "/Users/jeong-uchang/USW-AI-Security/scripts/../src/models/interpretable_mmtd.py", line 327, in create_interpretable_mmtd
+    model.load_mmtd_backbone_weights(checkpoint_path)
+  File "/Users/jeong-uchang/USW-AI-Security/scripts/../src/models/interpretable_mmtd.py", line 263, in load_mmtd_backbone_weights
+    missing_keys, unexpected_keys = temp_mmtd.load_state_dict(checkpoint, strict=False)
+  File "/opt/homebrew/lib/python3.10/site-packages/torch/nn/modules/module.py", line 2581, in load_state_dict
+    raise RuntimeError(
+RuntimeError: Error(s) in loading state_dict for OriginalMMTD:
+	size mismatch for text_encoder.bert.embeddings.word_embeddings.weight: copying a param with shape torch.Size([119547, 768]) from checkpoint, the shape in current model is torch.Size([30522, 768]).
