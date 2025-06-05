@@ -58,15 +58,18 @@ class AttentionAnalyzer:
                     for i, item in enumerate(output):
                         if hasattr(item, 'shape') and len(item.shape) == 4:  # attention 형태
                             self.attention_weights[f"{name}_{i}"] = item
+                # 추가: hidden_states도 저장 (transformer 출력의 경우)
+                if hasattr(output, 'hidden_states') and output.hidden_states is not None:
+                    self.attention_weights[f"{name}_hidden_states"] = output.hidden_states
             return hook
         
-        # 각 인코더에 hook 등록
+        # InterpretableMMTD 모델 구조에 맞게 hook 등록
         if hasattr(self.model, 'text_encoder'):
             self.model.text_encoder.register_forward_hook(hook_fn('text_encoder'))
         if hasattr(self.model, 'image_encoder'):
             self.model.image_encoder.register_forward_hook(hook_fn('image_encoder'))
-        if hasattr(self.model, 'fusion_layer'):
-            self.model.fusion_layer.register_forward_hook(hook_fn('fusion_layer'))
+        if hasattr(self.model, 'multi_modality_transformer_layer'):
+            self.model.multi_modality_transformer_layer.register_forward_hook(hook_fn('fusion_layer'))
     
     def extract_attention_weights(self, input_ids: torch.Tensor, 
                                 pixel_values: torch.Tensor) -> Dict[str, torch.Tensor]:
@@ -75,9 +78,13 @@ class AttentionAnalyzer:
         self.attention_weights.clear()
         
         with torch.no_grad():
+            # attention_mask 생성
+            attention_mask = (input_ids != self.tokenizer.pad_token_id).long()
+            
             # Forward pass with attention extraction
             outputs = self.model(
                 input_ids=input_ids,
+                attention_mask=attention_mask,
                 pixel_values=pixel_values,
                 output_attentions=True
             )
@@ -291,6 +298,7 @@ class AttentionAnalyzer:
         )
         
         input_ids = encoding['input_ids'].to(self.device)
+        attention_mask = encoding['attention_mask'].to(self.device)
         tokens = self.tokenizer.convert_ids_to_tokens(input_ids[0])
         
         # 이미지 준비
@@ -298,9 +306,14 @@ class AttentionAnalyzer:
             image = image.unsqueeze(0)
         image = image.to(self.device)
         
-        # 예측 수행
+        # 예측 수행 (InterpretableMMTD 모델에 맞게 수정)
         with torch.no_grad():
-            outputs = self.model(input_ids=input_ids, pixel_values=image)
+            outputs = self.model(
+                input_ids=input_ids, 
+                attention_mask=attention_mask,
+                pixel_values=image,
+                output_attentions=True
+            )
             prediction = torch.sigmoid(outputs.logits).cpu().numpy()[0, 0]
             predicted_class = int(prediction > 0.5)
         

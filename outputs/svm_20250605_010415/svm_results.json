@@ -1,0 +1,152 @@
+{
+  "experiment_info": {
+    "timestamp": "2025-06-05T03:10:14.702842",
+    "device": "cuda",
+    "model_type": "InterpretableMMTD_SVM",
+    "classifier_type": "svm",
+    "note": "SVM experiment for decision boundary and margin-based interpretability",
+    "advantages": [
+      "Decision boundary visualization",
+      "Support vector analysis",
+      "Margin-based interpretability",
+      "Robust to outliers",
+      "Memory efficient (only stores support vectors)",
+      "Multiple kernel options for non-linear classification",
+      "Probabilistic outputs available",
+      "Well-established theoretical foundation"
+    ]
+  },
+  "model_summary": {
+    "model_type": "InterpretableMMTD",
+    "classifier_type": "svm",
+    "total_parameters": 269771270,
+    "trainable_parameters": 269771270,
+    "backbone_parameters": 269771270,
+    "classifier_parameters": 0,
+    "device": "cuda",
+    "classifier_info": {
+      "classifier_type": "svm",
+      "total_parameters": 0,
+      "trainable_parameters": 0,
+      "input_size": 768,
+      "num_classes": 2,
+      "is_fitted": false,
+      "device": "cuda",
+      "hyperparameters": {
+        "C": 1.0,
+        "kernel": "rbf",
+        "gamma": "scale",
+        "degree": null,
+        "coef0": 0.0,
+        "probability": true
+      }
+    }
+  },
+  "training_results": {
+    "training_history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.0,
+        "train_accuracy": 0.998991935483871,
+        "val_loss": 0.0,
+        "val_accuracy": 0.9990387696251202,
+        "learning_rate": 0.0
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.0,
+        "train_accuracy": 0.998900293255132,
+        "val_loss": 0.0,
+        "val_accuracy": 0.9990387696251202,
+        "learning_rate": 0.0
+      }
+    ],
+    "best_val_accuracy": 0.9990387696251202,
+    "final_val_accuracy": 0.9990387696251202,
+    "total_training_time": 5202.428118467331,
+    "epochs_trained": 2,
+    "early_stopped": false,
+    "backbone_parameters": 0,
+    "svm_fitted": true,
+    "training_method": "feature_extraction_and_svm_fitting"
+  },
+  "test_results": {
+    "accuracy": 0.9996796411981419,
+    "loss": 0.005713541246625865,
+    "precision": 0.9996796411981419,
+    "recall": 0.9996796411981419,
+    "f1_score": 0.9996796411981419,
+    "auc_score": 0.9998211162102171,
+    "confusion_matrix": [
+      [
+        3123,
+        1
+      ],
+      [
+        1,
+        3118
+      ]
+    ],
+    "classification_report": {
+      "0": {
+        "precision": 0.9996798975672215,
+        "recall": 0.9996798975672215,
+        "f1-score": 0.9996798975672215,
+        "support": 3124.0
+      },
+      "1": {
+        "precision": 0.9996793844180827,
+        "recall": 0.9996793844180827,
+        "f1-score": 0.9996793844180827,
+        "support": 3119.0
+      },
+      "accuracy": 0.9996796411981419,
+      "macro avg": {
+        "precision": 0.999679640992652,
+        "recall": 0.999679640992652,
+        "f1-score": 0.999679640992652,
+        "support": 6243.0
+      },
+      "weighted avg": {
+        "precision": 0.9996796411981419,
+        "recall": 0.9996796411981419,
+        "f1-score": 0.9996796411981419,
+        "support": 6243.0
+      }
+    },
+    "has_decision_values": true
+  },
+  "interpretability_analysis": {
+    "support_vectors": {
+      "num_support_vectors": 140,
+      "support_indices_count": 140,
+      "n_support_per_class": [
+        71,
+        69
+      ],
+      "has_dual_coef": true,
+      "intercept": [
+        0.11396469426413132
+      ],
+      "support_vectors_shape": [
+        140,
+        768
+      ],
+      "dual_coef_shape": [
+        1,
+        140
+      ]
+    },
+    "margin_analysis": {
+      "num_support_vectors": 140,
+      "support_vector_ratio": 0.0028061173357920265,
+      "margin_width": null,
+      "n_support_per_class": [
+        71,
+        69
+      ],
+      "kernel_type": "rbf",
+      "C_parameter": 1.0
+    }
+  }
+}

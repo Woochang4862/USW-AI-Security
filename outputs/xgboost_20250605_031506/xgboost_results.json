@@ -1,0 +1,225 @@
+{
+  "experiment_info": {
+    "timestamp": "2025-06-05T04:06:34.604305",
+    "device": "cuda",
+    "model_type": "InterpretableMMTD_XGBoost",
+    "classifier_type": "xgboost",
+    "note": "XGBoost experiment for high-performance gradient boosting with SHAP interpretability",
+    "advantages": [
+      "High performance gradient boosting",
+      "Multiple feature importance types (gain, weight, cover)",
+      "SHAP values for instance-level explanations",
+      "Tree structure visualization",
+      "Built-in regularization (L1/L2)",
+      "Handle missing values automatically",
+      "Parallel training",
+      "Early stopping support",
+      "Robust to outliers",
+      "Feature selection via importance",
+      "Cross-validation built-in"
+    ]
+  },
+  "model_summary": {
+    "model_type": "InterpretableMMTD",
+    "classifier_type": "xgboost",
+    "total_parameters": 269771270,
+    "trainable_parameters": 269771270,
+    "backbone_parameters": 269771270,
+    "classifier_parameters": 0,
+    "device": "cuda",
+    "classifier_info": {
+      "classifier_type": "xgboost",
+      "total_parameters": 0,
+      "trainable_parameters": 0,
+      "input_size": 768,
+      "num_classes": 2,
+      "is_fitted": false,
+      "device": "cuda",
+      "hyperparameters": {
+        "max_depth": 6,
+        "learning_rate": 0.1,
+        "n_estimators": 100,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "reg_alpha": 0.1,
+        "reg_lambda": 1.0
+      }
+    }
+  },
+  "training_results": {
+    "training_history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.0,
+        "train_accuracy": 0.999908357771261,
+        "val_loss": 0.0,
+        "val_accuracy": 0.9993591797500802,
+        "learning_rate": 0.0
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.0,
+        "train_accuracy": 1.0,
+        "val_loss": 0.0,
+        "val_accuracy": 0.9993591797500802,
+        "learning_rate": 0.0
+      }
+    ],
+    "best_val_accuracy": 0.9993591797500802,
+    "final_val_accuracy": 0.9993591797500802,
+    "total_training_time": 2429.402064561844,
+    "epochs_trained": 2,
+    "early_stopped": false,
+    "backbone_parameters": 0,
+    "xgboost_fitted": true,
+    "training_method": "feature_extraction_and_xgboost_fitting"
+  },
+  "test_results": {
+    "accuracy": 0.999839820599071,
+    "loss": 0.0003587160956777756,
+    "precision": 0.9998398718564793,
+    "recall": 0.999839820599071,
+    "f1_score": 0.9998398205744122,
+    "auc_score": 1.0,
+    "confusion_matrix": [
+      [
+        3124,
+        0
+      ],
+      [
+        1,
+        3118
+      ]
+    ],
+    "classification_report": {
+      "0": {
+        "precision": 0.99968,
+        "recall": 1.0,
+        "f1-score": 0.9998399743959033,
+        "support": 3124.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 0.9996793844180827,
+        "f1-score": 0.9998396665063332,
+        "support": 3119.0
+      },
+      "accuracy": 0.999839820599071,
+      "macro avg": {
+        "precision": 0.9998400000000001,
+        "recall": 0.9998396922090413,
+        "f1-score": 0.9998398204511183,
+        "support": 6243.0
+      },
+      "weighted avg": {
+        "precision": 0.9998398718564793,
+        "recall": 0.999839820599071,
+        "f1-score": 0.9998398205744122,
+        "support": 6243.0
+      }
+    }
+  },
+  "interpretability_analysis": {
+    "tree_info": {
+      "n_estimators": 100,
+      "max_depth": 6,
+      "learning_rate": 0.1,
+      "feature_importances_available": true,
+      "best_iteration": null,
+      "best_score": null,
+      "total_trees": 100,
+      "total_nodes": 2094,
+      "avg_tree_depth": null
+    },
+    "feature_importances": {
+      "gain": {
+        "mean_importance": 0.0013020832557231188,
+        "max_importance": 0.4305770993232727,
+        "std_importance": 0.016995975747704506,
+        "top_10_features": [
+          485,
+          506,
+          667,
+          455,
+          709,
+          760,
+          57,
+          311,
+          577,
+          434
+        ],
+        "top_10_values": [
+          0.4305770993232727,
+          0.11238041520118713,
+          0.1051454022526741,
+          0.0613318532705307,
+          0.05565376952290535,
+          0.043523143976926804,
+          0.04266100749373436,
+          0.04168587177991867,
+          0.03281032666563988,
+          0.012353647500276566
+        ]
+      },
+      "weight": {
+        "mean_importance": 0.0013020833721384406,
+        "max_importance": 0.021063189953565598,
+        "std_importance": 0.0025916274171322584,
+        "top_10_features": [
+          303,
+          477,
+          556,
+          156,
+          745,
+          485,
+          228,
+          382,
+          372,
+          638
+        ],
+        "top_10_values": [
+          0.021063189953565598,
+          0.018054163083434105,
+          0.017051152884960175,
+          0.016048144549131393,
+          0.016048144549131393,
+          0.016048144549131393,
+          0.014042126014828682,
+          0.014042126014828682,
+          0.014042126014828682,
+          0.014042126014828682
+        ]
+      },
+      "cover": {
+        "mean_importance": 0.001302083139307797,
+        "max_importance": 0.06288375705480576,
+        "std_importance": 0.005260419566184282,
+        "top_10_features": [
+          485,
+          766,
+          446,
+          57,
+          1,
+          506,
+          667,
+          217,
+          343,
+          480
+        ],
+        "top_10_values": [
+          0.06288375705480576,
+          0.04535549879074097,
+          0.03811740502715111,
+          0.036515552550554276,
+          0.034630075097084045,
+          0.02851169928908348,
+          0.026518402621150017,
+          0.026464199647307396,
+          0.025994746014475822,
+          0.025618815794587135
+        ]
+      }
+    },
+    "shap_analysis": null
+  }
+}

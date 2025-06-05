@@ -1,0 +1,162 @@
+{
+  "experiment_info": {
+    "timestamp": "2025-06-04T14:34:10.915558",
+    "device": "cuda",
+    "model_type": "InterpretableMMTD_Improved",
+    "classifier_type": "logistic_regression",
+    "note": "Improved experiment with full dataset and optimized hyperparameters",
+    "improvements": [
+      "Full dataset (30K+ samples)",
+      "Lower learning rate (2e-5)",
+      "Larger batch size (32)",
+      "More epochs (10)",
+      "Learning rate scheduling",
+      "Early stopping",
+      "Reduced regularization"
+    ]
+  },
+  "model_summary": {
+    "model_type": "InterpretableMMTD",
+    "classifier_type": "logistic_regression",
+    "total_parameters": 269772808,
+    "trainable_parameters": 269772808,
+    "backbone_parameters": 269771270,
+    "classifier_parameters": 1538,
+    "device": "cuda",
+    "classifier_info": {
+      "model_type": "LogisticRegression",
+      "input_size": 768,
+      "num_classes": 2,
+      "num_parameters": 1538,
+      "trainable_parameters": 1538,
+      "l1_lambda": 1e-05,
+      "l2_lambda": 0.0001,
+      "weight_l1_norm": 68.4238052368164,
+      "weight_l2_norm": 2.010671854019165,
+      "device": "cuda"
+    }
+  },
+  "training_results": {
+    "training_history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.024730181337632592,
+        "train_accuracy": 0.9953720674486803,
+        "val_loss": 0.008722027631866157,
+        "val_accuracy": 0.9980775392502403,
+        "learning_rate": 2e-05
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.03476043619677053,
+        "train_accuracy": 0.9929893695014663,
+        "val_loss": 0.021872147478220264,
+        "val_accuracy": 0.9945530278756809,
+        "learning_rate": 2e-05
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.02493169511083918,
+        "train_accuracy": 0.9949138563049853,
+        "val_loss": 0.001045989094786726,
+        "val_accuracy": 1.0,
+        "learning_rate": 2e-05
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.02600647574090918,
+        "train_accuracy": 0.9947763929618768,
+        "val_loss": 0.015229301312130553,
+        "val_accuracy": 0.9964754886254406,
+        "learning_rate": 2e-05
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.020560227290971636,
+        "train_accuracy": 0.9956469941348973,
+        "val_loss": 0.00973989751916949,
+        "val_accuracy": 0.9971163088753605,
+        "learning_rate": 2e-05
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.013977775083669758,
+        "train_accuracy": 0.9972965542521994,
+        "val_loss": 0.0041923462644894135,
+        "val_accuracy": 0.9993591797500802,
+        "learning_rate": 1e-05
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.005957700076319764,
+        "train_accuracy": 0.9990377565982405,
+        "val_loss": 0.007105493792736599,
+        "val_accuracy": 0.9990387696251202,
+        "learning_rate": 1e-05
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.009055081636459182,
+        "train_accuracy": 0.998533724340176,
+        "val_loss": 0.02543548789832798,
+        "val_accuracy": 0.9945530278756809,
+        "learning_rate": 1e-05
+      }
+    ],
+    "best_val_accuracy": 1.0,
+    "total_training_time": 1789.8691883087158,
+    "epochs_trained": 8,
+    "early_stopped": true
+  },
+  "test_results": {
+    "accuracy": 0.9943937209674836,
+    "loss": 0.028749152130330913,
+    "precision": 0.9944489359670917,
+    "recall": 0.9943937209674836,
+    "f1_score": 0.994393540581966,
+    "auc_score": 0.9997434254306039,
+    "confusion_matrix": [
+      [
+        3123,
+        1
+      ],
+      [
+        34,
+        3085
+      ]
+    ],
+    "classification_report": {
+      "0": {
+        "precision": 0.9892302819132087,
+        "recall": 0.9996798975672215,
+        "f1-score": 0.9944276389110014,
+        "support": 3124.0
+      },
+      "1": {
+        "precision": 0.9996759559300065,
+        "recall": 0.9890990702148125,
+        "f1-score": 0.9943593875906527,
+        "support": 3119.0
+      },
+      "accuracy": 0.9943937209674836,
+      "macro avg": {
+        "precision": 0.9944531189216076,
+        "recall": 0.994389483891017,
+        "f1-score": 0.994393513250827,
+        "support": 6243.0
+      },
+      "weighted avg": {
+        "precision": 0.9944489359670917,
+        "recall": 0.9943937209674836,
+        "f1-score": 0.994393540581966,
+        "support": 6243.0
+      }
+    }
+  },
+  "interpretability_analysis": {
+    "mean_importance": 0.0013020834885537624,
+    "max_importance": 0.0025472170673310757,
+    "std_importance": 0.0005208716611377895,
+    "sparsity": 0.2890625
+  }
+}

@@ -1,0 +1,200 @@
+{
+  "experiment_info": {
+    "timestamp": "2025-06-04T15:00:01.690047",
+    "device": "cuda",
+    "model_type": "InterpretableMMTD_DecisionTree",
+    "classifier_type": "decision_tree",
+    "note": "Decision Tree experiment for rule-based interpretability",
+    "advantages": [
+      "Rule-based interpretability",
+      "No black-box components in classifier",
+      "Human-readable decision paths",
+      "Feature importance ranking",
+      "Fast inference",
+      "No gradient computation needed for classifier"
+    ]
+  },
+  "model_summary": {
+    "model_type": "InterpretableMMTD",
+    "classifier_type": "decision_tree",
+    "total_parameters": 269771270,
+    "trainable_parameters": 269771270,
+    "backbone_parameters": 269771270,
+    "classifier_parameters": 0,
+    "device": "cuda",
+    "classifier_info": {
+      "classifier_type": "decision_tree",
+      "total_parameters": 0,
+      "trainable_parameters": 0,
+      "input_size": 768,
+      "num_classes": 2,
+      "is_fitted": false,
+      "device": "cuda"
+    }
+  },
+  "training_results": {
+    "training_history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.0,
+        "train_accuracy": 0.999266862170088,
+        "val_loss": 0.0,
+        "val_accuracy": 0.9993591797500802,
+        "learning_rate": 0.0
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.0,
+        "train_accuracy": 0.999175219941349,
+        "val_loss": 0.0,
+        "val_accuracy": 0.9993591797500802,
+        "learning_rate": 0.0
+      }
+    ],
+    "best_val_accuracy": 0.9993591797500802,
+    "final_val_accuracy": 0.9993591797500802,
+    "total_training_time": 333.9286527633667,
+    "epochs_trained": 2,
+    "early_stopped": false,
+    "backbone_parameters": 0,
+    "decision_tree_fitted": true,
+    "training_method": "feature_extraction_and_decision_tree_fitting"
+  },
+  "test_results": {
+    "accuracy": 0.9993592823962838,
+    "loss": 0.0013665533291974238,
+    "precision": 0.999360101728258,
+    "recall": 0.9993592823962838,
+    "f1_score": 0.9993592818044724,
+    "auc_score": 0.9999992302762919,
+    "confusion_matrix": [
+      [
+        3124,
+        0
+      ],
+      [
+        4,
+        3115
+      ]
+    ],
+    "classification_report": {
+      "0": {
+        "precision": 0.9987212276214834,
+        "recall": 1.0,
+        "f1-score": 0.999360204734485,
+        "support": 3124.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 0.9987175376723308,
+        "f1-score": 0.9993583573949311,
+        "support": 3119.0
+      },
+      "accuracy": 0.9993592823962838,
+      "macro avg": {
+        "precision": 0.9993606138107417,
+        "recall": 0.9993587688361654,
+        "f1-score": 0.9993592810647081,
+        "support": 6243.0
+      },
+      "weighted avg": {
+        "precision": 0.999360101728258,
+        "recall": 0.9993592823962838,
+        "f1-score": 0.9993592818044724,
+        "support": 6243.0
+      }
+    }
+  },
+  "interpretability_analysis": {
+    "tree_rules": [
+      "|--- feature_680 <= 0.05",
+      "|   |--- feature_374 <= -0.18",
+      "|   |   |--- feature_443 <= 1.77",
+      "|   |   |   |--- feature_767 <= -0.22",
+      "|   |   |   |   |--- feature_720 <= -0.64",
+      "|   |   |   |   |   |--- class: 0",
+      "|   |   |   |   |--- feature_720 >  -0.64",
+      "|   |   |   |   |   |--- feature_548 <= 0.61",
+      "|   |   |   |   |   |   |--- class: 0",
+      "|   |   |   |   |   |--- feature_548 >  0.61",
+      "|   |   |   |   |   |   |--- class: 0",
+      "|   |   |   |--- feature_767 >  -0.22",
+      "|   |   |   |   |--- feature_356 <= -1.72",
+      "|   |   |   |   |   |--- feature_99 <= -0.58",
+      "|   |   |   |   |   |   |--- class: 0",
+      "|   |   |   |   |   |--- feature_99 >  -0.58",
+      "|   |   |   |   |   |   |--- class: 0",
+      "|   |   |   |   |--- feature_356 >  -1.72",
+      "|   |   |   |   |   |--- feature_742 <= -1.45",
+      "|   |   |   |   |   |   |--- feature_622 <= -0.67",
+      "|   |   |   |   |   |   |   |--- class: 0",
+      "|   |   |   |   |   |   |--- feature_622 >  -0.67",
+      "|   |   |   |   |   |   |   |--- class: 0",
+      "|   |   |   |   |   |--- feature_742 >  -1.45",
+      "|   |   |   |   |   |   |--- class: 0",
+      "|   |   |--- feature_443 >  1.77",
+      "|   |   |   |--- feature_746 <= -1.42",
+      "|   |   |   |   |--- feature_704 <= -1.09",
+      "|   |   |   |   |   |--- class: 0",
+      "|   |   |   |   |--- feature_704 >  -1.09",
+      "|   |   |   |   |   |--- class: 1",
+      "|   |   |   |--- feature_746 >  -1.42",
+      "|   |   |   |   |--- class: 0",
+      "|   |--- feature_374 >  -0.18",
+      "|   |   |--- class: 0",
+      "|--- feature_680 >  0.05",
+      "|   |--- feature_323 <= 0.76",
+      "|   |   |--- feature_330 <= 1.72",
+      "|   |   |   |--- feature_27 <= 0.24",
+      "|   |   |   |   |--- class: 1",
+      "|   |   |   |--- feature_27 >  0.24",
+      "|   |   |   |   |--- feature_238 <= -1.76",
+      "|   |   |   |   |   |--- class: 1",
+      "|   |   |   |   |--- feature_238 >  -1.76",
+      "|   |   |   |   |   |--- feature_472 <= -0.46",
+      "|   |   |   |   |   |   |--- feature_679 <= 0.43",
+      "|   |   |   |   |   |   |   |--- class: 1",
+      "|   |   |   |   |   |   |--- feature_679 >  0.43",
+      "|   |   |   |   |   |   |   |--- class: 1",
+      "|   |   |   |   |   |--- feature_472 >  -0.46",
+      "|   |   |   |   |   |   |--- feature_578 <= -1.69",
+      "|   |   |   |   |   |   |   |--- feature_64 <= -0.04",
+      "|   |   |   |   |   |   |   |   |--- class: 1",
+      "|   |   |   |   |   |   |   |--- feature_64 >  -0.04",
+      "|   |   |   |   |   |   |   |   |--- class: 1",
+      "|   |   |   |   |   |   |--- feature_578 >  -1.69",
+      "|   |   |   |   |   |   |   |--- feature_745 <= -0.48",
+      "|   |   |   |   |   |   |   |   |--- feature_689 <= -0.33",
+      "|   |   |   |   |   |   |   |   |   |--- class: 1",
+      "|   |   |   |   |   |   |   |   |--- feature_689 >  -0.33",
+      "|   |   |   |   |   |   |   |   |   |--- class: 1",
+      "|   |   |   |   |   |   |   |--- feature_745 >  -0.48",
+      "|   |   |   |   |   |   |   |   |--- class: 1",
+      "|   |   |--- feature_330 >  1.72",
+      "|   |   |   |--- feature_100 <= 1.23",
+      "|   |   |   |   |--- class: 1",
+      "|   |   |   |--- feature_100 >  1.23",
+      "|   |   |   |   |--- class: 1",
+      "|   |--- feature_323 >  0.76",
+      "|   |   |--- class: 1"
+    ],
+    "importance_stats": {
+      "mean_importance": 0.0013020832557231188,
+      "max_importance": 0.9986568093299866,
+      "std_importance": 0.03603586554527283,
+      "top_10_features": [
+        680,
+        746,
+        323,
+        374,
+        704,
+        443,
+        100,
+        720,
+        330,
+        689
+      ]
+    },
+    "tree_structure": {}
+  }
+}

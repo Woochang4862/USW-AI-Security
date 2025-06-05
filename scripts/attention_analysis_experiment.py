@@ -24,7 +24,7 @@ warnings.filterwarnings('ignore')
 # Custom imports
 from src.analysis.attention_analyzer import AttentionAnalyzer
 from src.analysis.attention_visualizer import AttentionVisualizer
-from src.models.interpretable_mmtd import InterpretableMMTD
+from src.models.interpretable_mmtd import InterpretableMMTD, create_interpretable_mmtd
 from src.data_loader import EDPDataModule
 from transformers import AutoTokenizer
 from torchvision import transforms
@@ -70,12 +70,49 @@ class AttentionAnalysisExperiment:
         logger.info("📥 모델 및 토크나이저 로딩 중...")
         
         try:
-            # 모델 로딩
-            model_path = self.config['model_path']
-            self.model = InterpretableMMTD.load_from_checkpoint(
-                model_path,
-                map_location=self.device
+            # 모델 생성 (팩토리 함수 사용)
+            self.model = create_interpretable_mmtd(
+                classifier_type="logistic_regression",  # 기본값으로 설정
+                device=self.device
             )
+            
+            # 체크포인트 로딩
+            model_path = self.config['model_path']
+            if model_path and Path(model_path).exists():
+                logger.info(f"체크포인트 로딩: {model_path}")
+                checkpoint = torch.load(model_path, map_location=self.device)
+                
+                # state_dict 로딩 시도
+                if isinstance(checkpoint, dict) and 'state_dict' in checkpoint:
+                    # PyTorch Lightning 체크포인트 형식
+                    state_dict = checkpoint['state_dict']
+                elif isinstance(checkpoint, dict):
+                    # 일반 state_dict
+                    state_dict = checkpoint
+                else:
+                    logger.warning("알 수 없는 체크포인트 형식, 기본 가중치 사용")
+                    state_dict = None
+                
+                if state_dict:
+                    # state_dict 키 이름 정리 (Lightning prefix 제거)
+                    cleaned_state_dict = {}
+                    for key, value in state_dict.items():
+                        # 'model.' prefix 제거
+                        clean_key = key.replace('model.', '') if key.startswith('model.') else key
+                        cleaned_state_dict[clean_key] = value
+                    
+                    # 모델에 로딩 (strict=False로 누락된 키 무시)
+                    missing_keys, unexpected_keys = self.model.load_state_dict(cleaned_state_dict, strict=False)
+                    
+                    if missing_keys:
+                        logger.warning(f"누락된 키: {len(missing_keys)}개")
+                    if unexpected_keys:
+                        logger.warning(f"예상치 못한 키: {len(unexpected_keys)}개")
+                    
+                    logger.info("✅ 체크포인트 로딩 완료")
+            else:
+                logger.warning(f"체크포인트 파일을 찾을 수 없음: {model_path}, 기본 가중치 사용")
+            
             self.model.to(self.device)
             self.model.eval()
             
@@ -119,7 +156,24 @@ class AttentionAnalysisExperiment:
         logger.info(f"🔍 샘플 {sample_id} 분석 중...")
         
         try:
-            # Attention 분석 수행
+            # 텍스트 토큰화
+            encoding = self.tokenizer(
+                text,
+                padding='max_length',
+                truncation=True,
+                max_length=512,
+                return_tensors='pt'
+            )
+            
+            input_ids = encoding['input_ids'].to(self.device)
+            attention_mask = encoding['attention_mask'].to(self.device)
+            
+            # 이미지 준비
+            if len(image.shape) == 3:
+                image = image.unsqueeze(0)
+            image = image.to(self.device)
+            
+            # Attention 분석 수행 (pixel_values 매개변수 사용)
             explanation = self.analyzer.explain_prediction(
                 text=text,
                 image=image,
@@ -207,31 +261,62 @@ class AttentionAnalysisExperiment:
             if sample_count >= num_samples:
                 break
             
-            # 배치에서 데이터 추출
-            text = batch['text'][0] if isinstance(batch['text'], list) else batch['text'][0].item()
-            image = batch['image'][0]
-            label = batch['label'][0].item()
-            
-            sample_id = f"sample_{batch_idx:04d}"
-            
-            # 단일 샘플 분석
-            explanation = self.analyze_single_sample(text, image, label, sample_id)
-            
-            if explanation is not None:
-                explanations.append(explanation)
+            try:
+                # 배치에서 데이터 추출 (EDPDataModule 형식에 맞게)
+                if isinstance(batch, dict):
+                    # 딕셔너리 형태의 배치
+                    text = batch.get('text', batch.get('input_ids', None))
+                    image = batch.get('image', batch.get('pixel_values', None))
+                    label = batch.get('label', batch.get('labels', None))
+                elif isinstance(batch, (list, tuple)) and len(batch) >= 3:
+                    # 튜플 형태의 배치
+                    text, image, label = batch[0], batch[1], batch[2]
+                else:
+                    logger.warning(f"알 수 없는 배치 형태: {type(batch)}")
+                    continue
                 
-                # 시각화 생성 (처음 10개 샘플만)
-                if sample_count < 10:
-                    self.create_visualizations(explanation, image, sample_id)
+                # 텐서에서 값 추출
+                if torch.is_tensor(text):
+                    # 토큰 ID인 경우 디코딩
+                    if text.dtype in [torch.long, torch.int]:
+                        text = self.tokenizer.decode(text[0], skip_special_tokens=True)
+                    else:
+                        text = text[0].item() if text.numel() == 1 else str(text[0])
+                elif isinstance(text, list):
+                    text = text[0]
                 
-                # 개별 결과 저장
-                self.analyzer.save_explanation(
-                    explanation,
-                    str(self.output_dir / f'{sample_id}_explanation.json'),
-                    include_attention_maps=False
-                )
+                if torch.is_tensor(image):
+                    image = image[0]
                 
-                sample_count += 1
+                if torch.is_tensor(label):
+                    label = label[0].item()
+                elif isinstance(label, list):
+                    label = label[0]
+                
+                sample_id = f"sample_{batch_idx:04d}"
+                
+                # 단일 샘플 분석
+                explanation = self.analyze_single_sample(text, image, label, sample_id)
+                
+                if explanation is not None:
+                    explanations.append(explanation)
+                    
+                    # 시각화 생성 (처음 10개 샘플만)
+                    if sample_count < 10:
+                        self.create_visualizations(explanation, image, sample_id)
+                    
+                    # 개별 결과 저장
+                    self.analyzer.save_explanation(
+                        explanation,
+                        str(self.output_dir / f'{sample_id}_explanation.json'),
+                        include_attention_maps=False
+                    )
+                    
+                    sample_count += 1
+                    
+            except Exception as e:
+                logger.error(f"❌ 배치 {batch_idx} 처리 실패: {e}")
+                continue
             
             # 메모리 정리
             torch.cuda.empty_cache() if torch.cuda.is_available() else None

@@ -185,7 +185,8 @@ class InterpretableMMTD(nn.Module):
         token_type_ids: Optional[torch.Tensor] = None,
         attention_mask: Optional[torch.Tensor] = None,
         pixel_values: torch.Tensor = None,
-        labels: Optional[torch.Tensor] = None
+        labels: Optional[torch.Tensor] = None,
+        output_attentions: bool = False
     ) -> SequenceClassifierOutput:
         """
         Forward pass through interpretable MMTD
@@ -196,17 +197,41 @@ class InterpretableMMTD(nn.Module):
             attention_mask: Attention mask
             pixel_values: Image pixel values
             labels: True labels (optional)
+            output_attentions: Whether to return attention weights
             
         Returns:
-            SequenceClassifierOutput with logits and loss
+            SequenceClassifierOutput with logits, loss, and optionally attentions
         """
-        # Extract fused features
-        pooled_features = self.extract_features(
+        # Text encoding with attention outputs
+        text_outputs = self.text_encoder(
             input_ids=input_ids,
             token_type_ids=token_type_ids,
             attention_mask=attention_mask,
-            pixel_values=pixel_values
+            output_attentions=output_attentions
         )
+        
+        # Image encoding with attention outputs
+        image_outputs = self.image_encoder(
+            pixel_values=pixel_values,
+            output_attentions=output_attentions
+        )
+        
+        # Get last hidden states (layer 12)
+        text_last_hidden_state = text_outputs.hidden_states[12]
+        image_last_hidden_state = image_outputs.hidden_states[12]
+        
+        # Add modal type embeddings (original MMTD approach)
+        text_last_hidden_state += torch.zeros(text_last_hidden_state.size()).to(self.device)
+        image_last_hidden_state += torch.ones(image_last_hidden_state.size()).to(self.device)
+        
+        # Concatenate features
+        fuse_hidden_state = torch.cat([text_last_hidden_state, image_last_hidden_state], dim=1)
+        
+        # Multi-modality fusion
+        fused_features = self.multi_modality_transformer_layer(fuse_hidden_state)
+        
+        # Use first token (CLS-like) as the final representation
+        pooled_features = fused_features[:, 0, :]  # Shape: (batch_size, 768)
         
         # For Decision Tree: Fit incrementally during training
         if (self.classifier_type == "decision_tree" and 
@@ -239,10 +264,30 @@ class InterpretableMMTD(nn.Module):
                 # Use standard cross-entropy loss
                 loss = F.cross_entropy(logits, labels)
         
-        return SequenceClassifierOutput(
+        # Prepare output
+        result = SequenceClassifierOutput(
             loss=loss,
             logits=logits
         )
+        
+        # Add attention weights if requested
+        if output_attentions:
+            # Collect all attention weights
+            attentions = {}
+            
+            if hasattr(text_outputs, 'attentions') and text_outputs.attentions:
+                attentions['text_attentions'] = text_outputs.attentions
+            
+            if hasattr(image_outputs, 'attentions') and image_outputs.attentions:
+                attentions['image_attentions'] = image_outputs.attentions
+            
+            # Add fusion layer attention (if available)
+            # Note: The multi_modality_transformer_layer might not have built-in attention output
+            # This would need to be implemented based on the actual transformer architecture
+            
+            result.attentions = attentions
+        
+        return result
     
     def get_feature_importance(self, **kwargs) -> torch.Tensor:
         """Get feature importance from the interpretable classifier"""
