@@ -350,14 +350,29 @@ class SVMExperimentRunner:
                     'support_indices_count': len(support_info['support_indices']) if 'support_indices' in support_info else 0,
                     'n_support_per_class': support_info['n_support'].tolist() if 'n_support' in support_info else [],
                     'has_dual_coef': 'dual_coef' in support_info,
-                    'intercept': support_info['intercept'].tolist() if 'intercept' in support_info else None
+                    'intercept': support_info['intercept'].tolist() if 'intercept' in support_info else None,
+                    # Convert numpy arrays to lists for JSON serialization
+                    'support_vectors_shape': list(support_info['support_vectors'].shape) if 'support_vectors' in support_info else None,
+                    'dual_coef_shape': list(support_info['dual_coef'].shape) if 'dual_coef' in support_info else None
                 }
                 logger.info(f"📊 Support Vector 수: {interpretability_results['support_vectors']['num_support_vectors']}")
             
             # 2. Margin analysis
             if hasattr(model, 'get_margin_analysis'):
                 margin_analysis = model.get_margin_analysis()
-                interpretability_results['margin_analysis'] = margin_analysis
+                # Convert any numpy values to Python types
+                if isinstance(margin_analysis, dict):
+                    json_safe_margin = {}
+                    for key, value in margin_analysis.items():
+                        if hasattr(value, 'tolist'):  # numpy array
+                            json_safe_margin[key] = value.tolist()
+                        elif hasattr(value, 'item'):  # numpy scalar
+                            json_safe_margin[key] = value.item()
+                        else:
+                            json_safe_margin[key] = value
+                    interpretability_results['margin_analysis'] = json_safe_margin
+                else:
+                    interpretability_results['margin_analysis'] = margin_analysis
                 logger.info(f"📐 Margin 분석 완료")
             
             # 3. Feature importance (linear kernel only)
