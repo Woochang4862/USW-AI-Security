@@ -16,7 +16,7 @@ import os
 # Add src directory to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from models.interpretable_classifiers import LogisticRegressionClassifier, DecisionTreeClassifier, SVMClassifier
+from models.interpretable_classifiers import LogisticRegressionClassifier, DecisionTreeClassifier, SVMClassifier, XGBoostClassifier
 from evaluation.original_mmtd_model import OriginalMMTD
 from transformers.models.bert.modeling_bert import SequenceClassifierOutput
 
@@ -118,6 +118,13 @@ class InterpretableMMTD(nn.Module):
                 device=device,
                 **kwargs
             )
+        elif classifier_type == "xgboost":
+            return XGBoostClassifier(
+                input_size=input_size,
+                num_classes=num_classes,
+                device=device,
+                **kwargs
+            )
         elif classifier_type == "attention":
             # Placeholder for future implementation
             raise NotImplementedError("Attention classifier not yet implemented")
@@ -213,6 +220,12 @@ class InterpretableMMTD(nn.Module):
             hasattr(self.interpretable_classifier, 'fit_incremental')):
             self.interpretable_classifier.fit_incremental(pooled_features, labels)
         
+        # For XGBoost: Fit incrementally during training
+        if (self.classifier_type == "xgboost" and 
+            labels is not None and 
+            hasattr(self.interpretable_classifier, 'fit_incremental')):
+            self.interpretable_classifier.fit_incremental(pooled_features, labels)
+        
         # Classification through interpretable classifier
         logits = self.interpretable_classifier(pooled_features)
         
@@ -271,6 +284,25 @@ class InterpretableMMTD(nn.Module):
         if hasattr(self.interpretable_classifier, 'get_decision_function_values'):
             features = self.extract_features(input_ids, attention_mask=attention_mask, pixel_values=pixel_values)
             return self.interpretable_classifier.get_decision_function_values(features)
+        return torch.tensor([])
+    
+    def get_shap_values(self, input_ids, attention_mask, pixel_values, max_samples: int = 100):
+        """Get SHAP values for XGBoost explanations (XGBoost only)"""
+        if hasattr(self.interpretable_classifier, 'get_shap_values'):
+            features = self.extract_features(input_ids, attention_mask=attention_mask, pixel_values=pixel_values)
+            return self.interpretable_classifier.get_shap_values(features, max_samples=max_samples)
+        return None
+    
+    def get_tree_info(self) -> Dict[str, Any]:
+        """Get tree information (Decision Tree/XGBoost only)"""
+        if hasattr(self.interpretable_classifier, 'get_tree_info'):
+            return self.interpretable_classifier.get_tree_info()
+        return {}
+    
+    def get_xgboost_importance(self, importance_type: str = 'gain') -> torch.Tensor:
+        """Get XGBoost feature importance with specific type (XGBoost only)"""
+        if hasattr(self.interpretable_classifier, 'get_feature_importance'):
+            return self.interpretable_classifier.get_feature_importance(importance_type=importance_type)
         return torch.tensor([])
     
     def visualize_feature_importance(self, **kwargs):

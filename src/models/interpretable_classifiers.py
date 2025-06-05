@@ -16,6 +16,7 @@ from sklearn.tree import DecisionTreeClassifier as SklearnDecisionTree
 from sklearn.tree import export_text
 from sklearn.svm import SVC
 import joblib
+import xgboost as xgb
 
 logger = logging.getLogger(__name__)
 
@@ -1062,6 +1063,445 @@ class SVMClassifier(nn.Module):
         return summary
 
 
+class XGBoostClassifier(nn.Module):
+    """
+    Interpretable XGBoost classifier for MMTD
+    
+    Features:
+    - High performance gradient boosting
+    - Feature importance via gain, weight, cover
+    - SHAP values for detailed explanations
+    - Tree structure visualization
+    - Early stopping support
+    - Built-in regularization
+    """
+    
+    def __init__(
+        self,
+        input_size: int,
+        num_classes: int = 2,
+        max_depth: int = 6,
+        learning_rate: float = 0.1,
+        n_estimators: int = 100,
+        subsample: float = 0.8,
+        colsample_bytree: float = 0.8,
+        reg_alpha: float = 0.0,
+        reg_lambda: float = 1.0,
+        random_state: int = 42,
+        device: Optional[torch.device] = None,
+        **kwargs
+    ):
+        """
+        Initialize XGBoost classifier
+        
+        Args:
+            input_size: Size of input features (768 for MMTD fusion output)
+            num_classes: Number of output classes (2 for spam/ham)
+            max_depth: Maximum depth of trees
+            learning_rate: Learning rate for boosting
+            n_estimators: Number of boosting rounds
+            subsample: Subsample ratio of training instances
+            colsample_bytree: Subsample ratio of columns when constructing each tree
+            reg_alpha: L1 regularization term on weights
+            reg_lambda: L2 regularization term on weights
+            random_state: Random seed for reproducibility
+            device: Device to run on
+        """
+        super(XGBoostClassifier, self).__init__()
+        
+        self.input_size = input_size
+        self.num_classes = num_classes
+        self.max_depth = max_depth
+        self.learning_rate = learning_rate
+        self.n_estimators = n_estimators
+        self.subsample = subsample
+        self.colsample_bytree = colsample_bytree
+        self.reg_alpha = reg_alpha
+        self.reg_lambda = reg_lambda
+        self.random_state = random_state
+        self.device = device or torch.device("cpu")
+        
+        # Initialize XGBoost model
+        if num_classes == 2:
+            objective = 'binary:logistic'
+            num_class = None
+        else:
+            objective = 'multi:softprob'
+            num_class = num_classes
+        
+        self.xgb_params = {
+            'max_depth': max_depth,
+            'learning_rate': learning_rate,
+            'n_estimators': n_estimators,
+            'subsample': subsample,
+            'colsample_bytree': colsample_bytree,
+            'reg_alpha': reg_alpha,
+            'reg_lambda': reg_lambda,
+            'random_state': random_state,
+            'objective': objective,
+            'eval_metric': 'logloss',
+            'verbosity': 0,  # Suppress XGBoost output
+            'n_jobs': -1,    # Use all cores
+        }
+        
+        if num_class is not None:
+            self.xgb_params['num_class'] = num_class
+        
+        self.xgb_model = xgb.XGBClassifier(**self.xgb_params)
+        self.is_fitted = False
+        
+        # Training data storage for incremental fitting
+        self.training_features = []
+        self.training_labels = []
+        
+        # Move to device
+        self.to(self.device)
+        
+        logger.info(f"Initialized XGBoostClassifier:")
+        logger.info(f"  Input size: {input_size}")
+        logger.info(f"  Output classes: {num_classes}")
+        logger.info(f"  Max depth: {max_depth}")
+        logger.info(f"  Learning rate: {learning_rate}")
+        logger.info(f"  N estimators: {n_estimators}")
+        logger.info(f"  Device: {self.device}")
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass through XGBoost
+        
+        Args:
+            x: Input tensor of shape (batch_size, input_size)
+            
+        Returns:
+            Logits tensor of shape (batch_size, num_classes)
+        """
+        if not self.is_fitted:
+            # Return random predictions if not fitted
+            batch_size = x.shape[0]
+            if self.num_classes == 2:
+                logits = torch.randn(batch_size, 2, device=self.device)
+            else:
+                logits = torch.randn(batch_size, self.num_classes, device=self.device)
+            return logits
+        
+        # Convert to numpy for XGBoost
+        x_np = x.detach().cpu().numpy()
+        
+        # Get predictions
+        if self.num_classes == 2:
+            # Binary classification - get probabilities
+            probs = self.xgb_model.predict_proba(x_np)
+            # Convert probabilities to logits
+            probs = np.clip(probs, 1e-7, 1 - 1e-7)
+            logits = np.log(probs / (1 - probs + 1e-7))
+        else:
+            # Multi-class classification
+            probs = self.xgb_model.predict_proba(x_np)
+            probs = np.clip(probs, 1e-7, 1 - 1e-7)
+            logits = np.log(probs)
+        
+        return torch.tensor(logits, dtype=torch.float32, device=self.device)
+    
+    def fit_incremental(self, x: torch.Tensor, labels: torch.Tensor):
+        """
+        Incrementally collect training data and fit XGBoost
+        
+        Args:
+            x: Input features
+            labels: Target labels
+        """
+        # Convert to numpy
+        x_np = x.detach().cpu().numpy()
+        labels_np = labels.detach().cpu().numpy()
+        
+        # Collect training data
+        self.training_features.append(x_np)
+        self.training_labels.append(labels_np)
+        
+        # Fit XGBoost with accumulated data
+        if len(self.training_features) > 0:
+            all_features = np.vstack(self.training_features)
+            all_labels = np.hstack(self.training_labels)
+            
+            try:
+                self.xgb_model.fit(all_features, all_labels)
+                self.is_fitted = True
+            except Exception as e:
+                logger.warning(f"Failed to fit XGBoost: {e}")
+    
+    def predict_proba(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Get prediction probabilities
+        
+        Args:
+            x: Input tensor
+            
+        Returns:
+            Probability tensor
+        """
+        if not self.is_fitted:
+            raise RuntimeError("XGBoost must be fitted before prediction")
+        
+        x_np = x.detach().cpu().numpy()
+        probs = self.xgb_model.predict_proba(x_np)
+        
+        return torch.tensor(probs, dtype=torch.float32, device=self.device)
+    
+    def predict(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Get class predictions
+        
+        Args:
+            x: Input tensor
+            
+        Returns:
+            Predicted class indices
+        """
+        if not self.is_fitted:
+            raise RuntimeError("XGBoost must be fitted before prediction")
+        
+        x_np = x.detach().cpu().numpy()
+        predictions = self.xgb_model.predict(x_np)
+        
+        return torch.tensor(predictions, dtype=torch.long, device=self.device)
+    
+    def get_feature_importance(self, importance_type: str = 'gain', normalize: bool = True) -> torch.Tensor:
+        """
+        Get feature importance from XGBoost
+        
+        Args:
+            importance_type: Type of importance ('gain', 'weight', 'cover', 'total_gain', 'total_cover')
+            normalize: Whether to normalize importance scores
+            
+        Returns:
+            Feature importance tensor
+        """
+        if not self.is_fitted:
+            raise RuntimeError("XGBoost must be fitted before getting feature importance")
+        
+        try:
+            # Get feature importance as dictionary
+            importance_dict = self.xgb_model.get_booster().get_score(importance_type=importance_type)
+            
+            # Convert to array (XGBoost may not include all features if they're not used)
+            importance_array = np.zeros(self.input_size)
+            for feature_name, importance in importance_dict.items():
+                feature_idx = int(feature_name.replace('f', ''))
+                if feature_idx < self.input_size:
+                    importance_array[feature_idx] = importance
+            
+            importance_tensor = torch.from_numpy(importance_array).float()
+            
+            if normalize and importance_tensor.sum() > 0:
+                importance_tensor = importance_tensor / importance_tensor.sum()
+            
+            return importance_tensor
+            
+        except Exception as e:
+            logger.warning(f"Failed to get feature importance: {e}")
+            return torch.zeros(self.input_size)
+    
+    def get_shap_values(self, x: torch.Tensor, max_samples: int = 100) -> Optional[np.ndarray]:
+        """
+        Get SHAP values for model explanations
+        
+        Args:
+            x: Input tensor
+            max_samples: Maximum number of samples to compute SHAP for
+            
+        Returns:
+            SHAP values array or None if SHAP not available
+        """
+        if not self.is_fitted:
+            raise RuntimeError("XGBoost must be fitted before getting SHAP values")
+        
+        try:
+            import shap
+            
+            # Convert to numpy
+            x_np = x.detach().cpu().numpy()
+            
+            # Limit samples for computational efficiency
+            if len(x_np) > max_samples:
+                x_np = x_np[:max_samples]
+            
+            # Create explainer
+            explainer = shap.TreeExplainer(self.xgb_model)
+            shap_values = explainer.shap_values(x_np)
+            
+            # For binary classification, shap_values might be a list
+            if isinstance(shap_values, list) and len(shap_values) == 2:
+                # Use SHAP values for positive class
+                shap_values = shap_values[1]
+            
+            return shap_values
+            
+        except ImportError:
+            logger.warning("SHAP not available. Install with: pip install shap")
+            return None
+        except Exception as e:
+            logger.warning(f"Failed to compute SHAP values: {e}")
+            return None
+    
+    def get_tree_info(self) -> Dict[str, Any]:
+        """
+        Get information about the boosted trees
+        
+        Returns:
+            Dictionary with tree information
+        """
+        if not self.is_fitted:
+            return {}
+        
+        try:
+            booster = self.xgb_model.get_booster()
+            
+            # Get basic tree info
+            tree_info = {
+                'n_estimators': self.xgb_model.n_estimators,
+                'max_depth': self.max_depth,
+                'learning_rate': self.learning_rate,
+                'feature_importances_available': hasattr(self.xgb_model, 'feature_importances_'),
+                'best_iteration': getattr(self.xgb_model, 'best_iteration', None),
+                'best_score': getattr(self.xgb_model, 'best_score', None)
+            }
+            
+            # Try to get more detailed info
+            if hasattr(booster, 'trees_to_dataframe'):
+                try:
+                    trees_df = booster.trees_to_dataframe()
+                    tree_info.update({
+                        'total_trees': len(trees_df['Tree'].unique()) if 'Tree' in trees_df.columns else None,
+                        'total_nodes': len(trees_df) if trees_df is not None else None,
+                        'avg_tree_depth': trees_df['Depth'].mean() if 'Depth' in trees_df.columns else None
+                    })
+                except:
+                    pass
+            
+            return tree_info
+            
+        except Exception as e:
+            logger.warning(f"Failed to get tree info: {e}")
+            return {}
+    
+    def visualize_feature_importance(
+        self, 
+        feature_names: Optional[List[str]] = None,
+        importance_type: str = 'gain',
+        top_k: int = 20,
+        save_path: Optional[Path] = None
+    ) -> plt.Figure:
+        """
+        Visualize feature importance from XGBoost
+        
+        Args:
+            feature_names: Names of features
+            importance_type: Type of importance to plot
+            top_k: Number of top features to show
+            save_path: Path to save the plot
+            
+        Returns:
+            Matplotlib figure
+        """
+        importance = self.get_feature_importance(importance_type=importance_type, normalize=True)
+        
+        if importance.sum() == 0:
+            logger.warning("No feature importance available (model not fitted)")
+            fig, ax = plt.subplots(figsize=(8, 4))
+            ax.text(0.5, 0.5, 'Model not fitted yet', ha='center', va='center')
+            ax.set_title(f'XGBoost Feature Importance ({importance_type})')
+            return fig
+        
+        # Get top-k features
+        top_indices = torch.topk(importance, k=min(top_k, len(importance))).indices
+        top_importance = importance[top_indices]
+        
+        # Create feature names if not provided
+        if feature_names is None:
+            feature_names = [f'Feature_{i}' for i in range(len(importance))]
+        
+        top_names = [feature_names[i] for i in top_indices]
+        
+        # Create plot
+        fig, ax = plt.subplots(figsize=(10, 8))
+        
+        bars = ax.barh(range(len(top_importance)), top_importance.numpy())
+        ax.set_yticks(range(len(top_importance)))
+        ax.set_yticklabels(top_names)
+        ax.set_xlabel(f'Feature Importance ({importance_type})')
+        ax.set_title(f'XGBoost Feature Importance ({importance_type}) - Top {len(top_importance)}')
+        
+        # Color bars by importance
+        colors = plt.cm.viridis(top_importance.numpy() / top_importance.max().item())
+        for bar, color in zip(bars, colors):
+            bar.set_color(color)
+        
+        # Add value labels
+        for i, (bar, val) in enumerate(zip(bars, top_importance)):
+            ax.text(val + 0.001, bar.get_y() + bar.get_height()/2, 
+                   f'{val:.4f}', ha='left', va='center')
+        
+        ax.grid(True, alpha=0.3)
+        plt.tight_layout()
+        
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        
+        return fig
+    
+    def save_model(self, path: str):
+        """Save XGBoost model"""
+        if self.is_fitted:
+            self.xgb_model.save_model(path)
+            logger.info(f"XGBoost model saved to {path}")
+        else:
+            logger.warning("Cannot save unfitted XGBoost model")
+    
+    def load_model(self, path: str):
+        """Load XGBoost model"""
+        try:
+            self.xgb_model.load_model(path)
+            self.is_fitted = True
+            logger.info(f"XGBoost model loaded from {path}")
+        except Exception as e:
+            logger.error(f"Failed to load XGBoost model: {e}")
+    
+    def get_model_summary(self) -> Dict[str, Any]:
+        """
+        Get comprehensive model summary
+        
+        Returns:
+            Dictionary containing model information
+        """
+        summary = {
+            'classifier_type': 'xgboost',
+            'total_parameters': 0,  # XGBoost doesn't have traditional parameters
+            'trainable_parameters': 0,
+            'input_size': self.input_size,
+            'num_classes': self.num_classes,
+            'is_fitted': self.is_fitted,
+            'device': str(self.device),
+            'hyperparameters': {
+                'max_depth': self.max_depth,
+                'learning_rate': self.learning_rate,
+                'n_estimators': self.n_estimators,
+                'subsample': self.subsample,
+                'colsample_bytree': self.colsample_bytree,
+                'reg_alpha': self.reg_alpha,
+                'reg_lambda': self.reg_lambda
+            }
+        }
+        
+        if self.is_fitted:
+            tree_info = self.get_tree_info()
+            summary.update({
+                'tree_info': tree_info,
+                'training_samples': len(self._X_train) if hasattr(self, '_X_train') else None
+            })
+        
+        return summary
+
+
 class InterpretableClassifierFactory:
     """
     Factory class for creating interpretable classifiers
@@ -1101,6 +1541,19 @@ class InterpretableClassifierFactory:
     ) -> SVMClassifier:
         """Create an SVM classifier"""
         return SVMClassifier(
+            input_size=input_size,
+            num_classes=num_classes,
+            **kwargs
+        )
+    
+    @staticmethod
+    def create_xgboost_classifier(
+        input_size: int,
+        num_classes: int = 2,
+        **kwargs
+    ) -> XGBoostClassifier:
+        """Create an XGBoost classifier"""
+        return XGBoostClassifier(
             input_size=input_size,
             num_classes=num_classes,
             **kwargs
