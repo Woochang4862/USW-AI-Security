@@ -141,13 +141,22 @@ class AttentionAnalysisExperiment:
                 batch_size=1,  # 분석을 위해 배치 크기 1
                 num_workers=0
             )
-            self.data_module.setup()
+            
+            # 첫 번째 fold의 데이터 로딩 (분석용)
+            fold_idx = 0
+            self.train_loader, self.test_loader = self.data_module.create_data_loaders(fold_idx)
             
             logger.info("✅ 데이터 로딩 완료")
             
         except Exception as e:
             logger.error(f"❌ 데이터 로딩 실패: {e}")
             raise
+    
+    def test_dataloader(self):
+        """테스트 데이터로더 반환"""
+        if not hasattr(self, 'test_loader'):
+            raise RuntimeError("데이터가 로딩되지 않았습니다. load_data()를 먼저 호출하세요.")
+        return self.test_loader
     
     def analyze_single_sample(self, text: str, image: torch.Tensor, 
                             label: int, sample_id: str) -> Dict[str, Any]:
@@ -252,7 +261,7 @@ class AttentionAnalysisExperiment:
         logger.info(f"🔍 {num_samples}개 샘플 배치 분석 시작")
         
         # 테스트 데이터로더 가져오기
-        test_loader = self.data_module.test_dataloader()
+        test_loader = self.test_dataloader()
         
         explanations = []
         sample_count = 0
