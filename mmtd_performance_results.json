@@ -1,0 +1,224 @@
+{
+  "timestamp": "2025-06-06T13:53:50.948821",
+  "device": "mps",
+  "system_info": {
+    "cpu_count": 12,
+    "total_memory_gb": 24.0,
+    "python_version": "3.13.3 (main, Apr  8 2025, 13:54:08) [Clang 17.0.0 (clang-1700.0.13.3)]",
+    "pytorch_version": "2.7.1"
+  },
+  "results": [
+    {
+      "execution_time": 3.758519172668457,
+      "memory_used_gb": 0.3193359375,
+      "cpu_usage_percent": 33.1,
+      "peak_memory_gb": 7.1846466064453125,
+      "mps_memory_used_gb": 0.0
+    },
+    {
+      "execution_time": 0.009243965148925781,
+      "memory_used_gb": 0.007781982421875,
+      "cpu_usage_percent": 37.5,
+      "peak_memory_gb": 7.192596435546875,
+      "mps_memory_used_gb": 3.814697265625e-06,
+      "component": "text_encoder",
+      "sample_size": 1,
+      "tensor_shape": [
+        1,
+        256
+      ]
+    },
+    {
+      "execution_time": 0.003484964370727539,
+      "memory_used_gb": 0.0,
+      "cpu_usage_percent": 25.0,
+      "peak_memory_gb": 7.1926727294921875,
+      "mps_memory_used_gb": 0.000560760498046875,
+      "component": "image_encoder",
+      "sample_size": 1,
+      "tensor_shape": [
+        1,
+        3,
+        224,
+        224
+      ]
+    },
+    {
+      "execution_time": 0.18777799606323242,
+      "memory_used_gb": 0.0,
+      "cpu_usage_percent": 0.0,
+      "peak_memory_gb": 7.1926727294921875,
+      "mps_memory_used_gb": 0.0005881786346435547,
+      "component": "multimodal_fusion",
+      "sample_size": 1,
+      "output_shape": [
+        1,
+        2
+      ]
+    },
+    {
+      "execution_time": 0.0014119148254394531,
+      "memory_used_gb": 0.0,
+      "cpu_usage_percent": 0.0,
+      "peak_memory_gb": 7.1926727294921875,
+      "mps_memory_used_gb": 0.00057220458984375,
+      "component": "text_encoder",
+      "sample_size": 5,
+      "tensor_shape": [
+        5,
+        256
+      ]
+    },
+    {
+      "execution_time": 0.005604267120361328,
+      "memory_used_gb": 0.0,
+      "cpu_usage_percent": 0.0,
+      "peak_memory_gb": 7.1926727294921875,
+      "mps_memory_used_gb": 0.002803802490234375,
+      "component": "image_encoder",
+      "sample_size": 5,
+      "tensor_shape": [
+        5,
+        3,
+        224,
+        224
+      ]
+    },
+    {
+      "execution_time": 0.11797404289245605,
+      "memory_used_gb": 0.0,
+      "cpu_usage_percent": 0.0,
+      "peak_memory_gb": 7.1926727294921875,
+      "mps_memory_used_gb": 0.0034487247467041016,
+      "component": "multimodal_fusion",
+      "sample_size": 5,
+      "output_shape": [
+        5,
+        2
+      ]
+    },
+    {
+      "execution_time": 0.0018508434295654297,
+      "memory_used_gb": 0.0,
+      "cpu_usage_percent": 0.0,
+      "peak_memory_gb": 7.1926727294921875,
+      "mps_memory_used_gb": 0.0005893707275390625,
+      "component": "text_encoder",
+      "sample_size": 10,
+      "tensor_shape": [
+        10,
+        256
+      ]
+    },
+    {
+      "execution_time": 0.007493257522583008,
+      "memory_used_gb": 0.0,
+      "cpu_usage_percent": 0.0,
+      "peak_memory_gb": 7.1926727294921875,
+      "mps_memory_used_gb": 0.00560760498046875,
+      "component": "image_encoder",
+      "sample_size": 10,
+      "tensor_shape": [
+        10,
+        3,
+        224,
+        224
+      ]
+    },
+    {
+      "execution_time": 0.015671968460083008,
+      "memory_used_gb": 0.0,
+      "cpu_usage_percent": 0.0,
+      "peak_memory_gb": 7.1926727294921875,
+      "mps_memory_used_gb": 0.006326913833618164,
+      "component": "multimodal_fusion",
+      "sample_size": 10,
+      "output_shape": [
+        10,
+        2
+      ]
+    },
+    {
+      "execution_time": 0.0037920475006103516,
+      "memory_used_gb": 0.0,
+      "cpu_usage_percent": 0.0,
+      "peak_memory_gb": 7.1926727294921875,
+      "mps_memory_used_gb": 0.0006561279296875,
+      "component": "text_encoder",
+      "sample_size": 50,
+      "tensor_shape": [
+        50,
+        256
+      ]
+    },
+    {
+      "execution_time": 0.17336511611938477,
+      "memory_used_gb": 0.0,
+      "cpu_usage_percent": 0.0,
+      "peak_memory_gb": 7.1926727294921875,
+      "mps_memory_used_gb": 0.02803802490234375,
+      "component": "image_encoder",
+      "sample_size": 50,
+      "tensor_shape": [
+        50,
+        3,
+        224,
+        224
+      ]
+    },
+    {
+      "execution_time": 0.05147194862365723,
+      "memory_used_gb": 0.5077362060546875,
+      "cpu_usage_percent": 0.0,
+      "peak_memory_gb": 7.700408935546875,
+      "mps_memory_used_gb": 0.0292818546295166,
+      "component": "multimodal_fusion",
+      "sample_size": 50,
+      "output_shape": [
+        50,
+        2
+      ]
+    },
+    {
+      "execution_time": 0.0069539546966552734,
+      "memory_used_gb": 0.0,
+      "cpu_usage_percent": 0.0,
+      "peak_memory_gb": 7.706939697265625,
+      "mps_memory_used_gb": 0.00084686279296875,
+      "component": "text_encoder",
+      "sample_size": 100,
+      "tensor_shape": [
+        100,
+        256
+      ]
+    },
+    {
+      "execution_time": 0.06928491592407227,
+      "memory_used_gb": 0.068695068359375,
+      "cpu_usage_percent": 0.0,
+      "peak_memory_gb": 7.7755279541015625,
+      "mps_memory_used_gb": 0.0560760498046875,
+      "component": "image_encoder",
+      "sample_size": 100,
+      "tensor_shape": [
+        100,
+        3,
+        224,
+        224
+      ]
+    },
+    {
+      "execution_time": 0.08297300338745117,
+      "memory_used_gb": 0.0207977294921875,
+      "cpu_usage_percent": 0.0,
+      "peak_memory_gb": 7.79632568359375,
+      "mps_memory_used_gb": 0.05808281898498535,
+      "component": "multimodal_fusion",
+      "sample_size": 100,
+      "output_shape": [
+        100,
+        2
+      ]
+    }
+  ]
+}
