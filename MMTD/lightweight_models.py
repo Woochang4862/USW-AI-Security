@@ -51,47 +51,27 @@ class LightWeightMMTD(torch.nn.Module):
         # 분류기
         self.classifier = torch.nn.Linear(fusion_dim, 2)
         self.num_labels = 2
-        
-        # 디바이스 설정
-        self.device = torch.device("cuda" if torch.cuda.is_available() else 
-                                 "mps" if torch.backends.mps.is_available() else "cpu")
 
     def forward(self, input_ids, attention_mask, pixel_values, labels=None, token_type_ids=None):
-        # 텍스트 인코딩 (DistilBERT는 token_type_ids 사용하지 않음)
+        # 입력 텐서의 device를 동적으로 사용
+        device = input_ids.device if input_ids is not None else pixel_values.device
         text_outputs = self.text_encoder(
             input_ids=input_ids, 
             attention_mask=attention_mask
         )
-        
-        # 이미지 인코딩
         image_outputs = self.image_encoder(pixel_values=pixel_values)
-        
-        # 마지막 히든 스테이트 추출
-        text_last_hidden_state = text_outputs.hidden_states[-1]  # [batch, seq_len, 768]
-        image_last_hidden_state = image_outputs.hidden_states[-1]  # [batch, patch_len, 384]
-        
-        # [CLS] 토큰과 첫 번째 패치 토큰 사용
-        text_vec = text_last_hidden_state[:, 0, :]  # [batch, 768]
-        image_vec = image_last_hidden_state[:, 0, :]  # [batch, 384]
-        
-        # 특징 결합
-        fused_features = torch.cat([text_vec, image_vec], dim=1)  # [batch, 768+384]
-        
-        # FC 레이어를 통한 융합 (Transformer 대신)
-        outputs = self.fusion_fc(fused_features)  # [batch, 384]
-        
-        # Pooling
-        outputs = self.pooler(outputs)  # [batch, 384]
-        
-        # 분류
-        logits = self.classifier(outputs)  # [batch, 2]
-        
-        # 손실 계산
+        text_last_hidden_state = text_outputs.hidden_states[-1]
+        image_last_hidden_state = image_outputs.hidden_states[-1]
+        text_vec = text_last_hidden_state[:, 0, :]
+        image_vec = image_last_hidden_state[:, 0, :]
+        fused_features = torch.cat([text_vec, image_vec], dim=1)
+        outputs = self.fusion_fc(fused_features)
+        outputs = self.pooler(outputs)
+        logits = self.classifier(outputs)
         loss = None
         if labels is not None:
             loss_fct = CrossEntropyLoss()
             loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
-        
         return SequenceClassifierOutput(
             loss=loss,
             logits=logits,
@@ -144,29 +124,20 @@ class UltraLightMMTD(torch.nn.Module):
             torch.nn.Linear(128, 2)
         )
         self.num_labels = 2
-        
-        self.device = torch.device("cuda" if torch.cuda.is_available() else 
-                                 "mps" if torch.backends.mps.is_available() else "cpu")
 
     def forward(self, input_ids, attention_mask, pixel_values, labels=None, token_type_ids=None):
-        # 텍스트 및 이미지 인코딩
+        # 입력 텐서의 device를 동적으로 사용
+        device = input_ids.device if input_ids is not None else pixel_values.device
         text_outputs = self.text_encoder(input_ids=input_ids, attention_mask=attention_mask)
         image_outputs = self.image_encoder(pixel_values=pixel_values)
-        
-        # [CLS] 토큰 추출
         text_vec = text_outputs.hidden_states[-1][:, 0, :]
         image_vec = image_outputs.hidden_states[-1][:, 0, :]
-        
-        # 직접 결합 후 분류
         fused_features = torch.cat([text_vec, image_vec], dim=1)
         logits = self.classifier(fused_features)
-        
-        # 손실 계산
         loss = None
         if labels is not None:
             loss_fct = CrossEntropyLoss()
             loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
-        
         return SequenceClassifierOutput(
             loss=loss,
             logits=logits,
