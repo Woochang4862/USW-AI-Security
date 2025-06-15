@@ -45,7 +45,7 @@ class LightweightCollator:
     """경량화 모델용 데이터 콜레이터"""
     def __init__(self):
         self.tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-multilingual-cased')
-        self.feature_extractor = ViTFeatureExtractor.from_pretrained('google/vit-small-patch16-224')
+        self.feature_extractor = ViTFeatureExtractor.from_pretrained('google/vit-base-patch16-224-in21k')
 
     def __call__(self, batch):
         texts, images, labels = zip(*batch)
