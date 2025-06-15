@@ -309,7 +309,7 @@ def main():
     # 모델 초기화
     print("\n모델 초기화...")
     models = {
-        'MMTD (Original)': MMTD(),
+        'MMTD (Original)': MMTD(bert_pretrain_weight='bert-base-multilingual-cased'),
         'LightWeightMMTD': LightWeightMMTD(),
         'UltraLightMMTD': UltraLightMMTD()
     }
