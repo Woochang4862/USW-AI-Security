@@ -24,7 +24,7 @@ class LightWeightMMTD(torch.nn.Module):
         if vit_pretrain_weight is not None:
             self.image_encoder = ViTForImageClassification.from_pretrained(vit_pretrain_weight)
         else:
-            self.image_encoder = ViTForImageClassification.from_pretrained('google/vit-small-patch16-224')
+            self.image_encoder = ViTForImageClassification.from_pretrained('google/vit-base-patch16-224-in21k')
         
         # 히든 스테이트 출력 활성화
         self.text_encoder.config.output_hidden_states = True
@@ -127,7 +127,7 @@ class UltraLightMMTD(torch.nn.Module):
         if vit_pretrain_weight is not None:
             self.image_encoder = ViTForImageClassification.from_pretrained(vit_pretrain_weight)
         else:
-            self.image_encoder = ViTForImageClassification.from_pretrained('google/vit-small-patch16-224')
+            self.image_encoder = ViTForImageClassification.from_pretrained('google/vit-base-patch16-224-in21k')
         
         self.text_encoder.config.output_hidden_states = True
         self.image_encoder.config.output_hidden_states = True
