@@ -14,7 +14,8 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # 경량화 모델 임포트
-from lightweight_models import LightWeightMMTD, UltraLightMMTD
+from lightweight_models import LightWeightMMTD, UltraLightMMTD, MobileBertMobileViTMMTD
+from utils import MobileBertMobileViTCollator
 
 
 class EmailDataset(Dataset):
@@ -230,31 +231,60 @@ def plot_training_history(history, save_path='lightweight_checkpoints'):
     plt.close()
 
 
-def train_single_fold(fold_num, model_type='lightweight', 
+# 실험 config 정의
+experiment_configs = {
+    "mobilebert_mobilevit": {
+        "model_class": MobileBertMobileViTMMTD,
+        "collator_class": MobileBertMobileViTCollator,
+        "checkpoint_path": "outputs/mobilebert_mobilevit/best_model.pth",
+        "batch_size": 32,
+    },
+    "lightweight": {
+        "model_class": LightWeightMMTD,
+        "collator_class": LightweightCollator,
+        "checkpoint_path": "outputs/lightweight/best_model.pth",
+        "batch_size": 32,
+    },
+    "ultralight": {
+        "model_class": UltraLightMMTD,
+        "collator_class": LightweightCollator,
+        "checkpoint_path": "outputs/ultralight/best_model.pth",
+        "batch_size": 32,
+    },
+}
+
+
+def train_single_fold(fold_num, experiment=None, model_type='lightweight', 
                      data_path='DATA/email_data/EDP.csv', 
                      pics_path='DATA/email_data/pics',
                      num_epochs=3, batch_size=16, learning_rate=2e-5):
     """단일 fold에 대해 모델을 훈련합니다."""
     print(f"\n{'='*20} Fold {fold_num} 훈련 {'='*20}")
-    
-    # 디바이스 설정
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"사용 디바이스: {device}")
-    
-    # 데이터 분할
     splitter = DataSplitter(data_path, k_fold=5)
     train_data, val_data = splitter.get_fold_data(fold_num - 1)
-    
     print(f"훈련 데이터: {len(train_data)}, 검증 데이터: {len(val_data)}")
-    
-    # 데이터셋 생성
     train_dataset = EmailDataset(pics_path, train_data)
     val_dataset = EmailDataset(pics_path, val_data)
-    
-    # 콜레이터 생성
-    collator = LightweightCollator()
-    
-    # 데이터로더 생성
+
+    # config 기반 분기
+    if experiment is not None and experiment in experiment_configs:
+        config = experiment_configs[experiment]
+        collator = config["collator_class"]()
+        batch_size = config.get("batch_size", batch_size)
+        model = config["model_class"]()
+        model_name = config["model_class"].__name__
+        save_path = os.path.dirname(config["checkpoint_path"])
+        checkpoint_path = config["checkpoint_path"]
+    else:
+        # 기존 방식
+        collator = LightweightCollator()
+        model = LightWeightMMTD() if model_type == 'lightweight' else UltraLightMMTD()
+        model_name = model.__class__.__name__
+        save_path = f'lightweight_checkpoints/{model_name.lower()}_fold{fold_num}'
+        checkpoint_path = os.path.join(save_path, 'best_model.pth')
+
     train_dataloader = DataLoader(
         train_dataset,
         batch_size=batch_size,
@@ -262,7 +292,6 @@ def train_single_fold(fold_num, model_type='lightweight',
         collate_fn=collator,
         num_workers=0
     )
-    
     val_dataloader = DataLoader(
         val_dataset,
         batch_size=batch_size,
@@ -270,78 +299,53 @@ def train_single_fold(fold_num, model_type='lightweight',
         collate_fn=collator,
         num_workers=0
     )
-    
-    # 모델 초기화
-    if model_type == 'lightweight':
-        model = LightWeightMMTD()
-        model_name = 'LightWeightMMTD'
-    elif model_type == 'ultralight':
-        model = UltraLightMMTD()
-        model_name = 'UltraLightMMTD'
-    else:
-        raise ValueError(f"지원하지 않는 모델 타입: {model_type}")
-    
     print(f"모델: {model_name}")
-    
-    # 모델 크기 정보
     if hasattr(model, 'get_model_size'):
         size_info = model.get_model_size()
         print(f"모델 파라미터: {size_info['total_parameters']:,}")
         print(f"모델 크기: {size_info['total_size_mb']:.2f} MB")
+    os.makedirs(save_path, exist_ok=True)
+    history = train_model(
+        model, train_dataloader, val_dataloader, device,
+        num_epochs=num_epochs, learning_rate=learning_rate, save_path=save_path
+    )
+    plot_training_history(history, save_path)
+    torch.save(model.state_dict(), checkpoint_path)
+    print(f"체크포인트 저장 위치: {checkpoint_path}")
+    # 최종 평가
+    model.load_state_dict(torch.load(checkpoint_path))
+    final_accuracy, final_loss, predictions, labels = evaluate_model(model, val_dataloader, device)
     
-    # 저장 경로 설정
-    save_path = f'lightweight_checkpoints/{model_name.lower()}_fold{fold_num}'
+    # 상세 분류 리포트
+    report = classification_report(labels, predictions, target_names=['ham', 'spam'], output_dict=True)
     
-    try:
-        # 모델 훈련
-        history = train_model(
-            model, train_dataloader, val_dataloader, device,
-            num_epochs=num_epochs, learning_rate=learning_rate, save_path=save_path
-        )
-        
-        # 훈련 과정 시각화
-        plot_training_history(history, save_path)
-        
-        # 최종 평가
-        model.load_state_dict(torch.load(os.path.join(save_path, 'best_model.pth')))
-        final_accuracy, final_loss, predictions, labels = evaluate_model(model, val_dataloader, device)
-        
-        # 상세 분류 리포트
-        report = classification_report(labels, predictions, target_names=['ham', 'spam'], output_dict=True)
-        
-        # 결과 저장
-        results = {
-            'fold': fold_num,
-            'model_type': model_type,
-            'model_name': model_name,
-            'final_accuracy': final_accuracy,
-            'final_loss': final_loss,
-            'best_val_accuracy': history['best_val_accuracy'],
-            'classification_report': report,
-            'training_history': history,
-            'hyperparameters': {
-                'num_epochs': num_epochs,
-                'batch_size': batch_size,
-                'learning_rate': learning_rate
-            }
+    # 결과 저장
+    results = {
+        'fold': fold_num,
+        'model_type': model_type,
+        'model_name': model_name,
+        'final_accuracy': final_accuracy,
+        'final_loss': final_loss,
+        'best_val_accuracy': history['best_val_accuracy'],
+        'classification_report': report,
+        'training_history': history,
+        'hyperparameters': {
+            'num_epochs': num_epochs,
+            'batch_size': batch_size,
+            'learning_rate': learning_rate
         }
-        
-        # JSON으로 결과 저장
-        with open(os.path.join(save_path, 'training_results.json'), 'w', encoding='utf-8') as f:
-            json.dump(results, f, indent=2, ensure_ascii=False)
-        
-        print(f"\nFold {fold_num} 훈련 완료!")
-        print(f"최고 검증 정확도: {history['best_val_accuracy']:.4f}")
-        print(f"최종 테스트 정확도: {final_accuracy:.4f}")
-        print(f"결과 저장 위치: {save_path}")
-        
-        return results
-        
-    except Exception as e:
-        print(f"Fold {fold_num} 훈련 중 오류 발생: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return None
+    }
+    
+    # JSON으로 결과 저장
+    with open(os.path.join(save_path, 'training_results.json'), 'w', encoding='utf-8') as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
+    
+    print(f"\nFold {fold_num} 훈련 완료!")
+    print(f"최고 검증 정확도: {history['best_val_accuracy']:.4f}")
+    print(f"최종 테스트 정확도: {final_accuracy:.4f}")
+    print(f"결과 저장 위치: {save_path}")
+    
+    return results
 
 
 def train_all_folds(model_type='lightweight', num_epochs=3, batch_size=16, learning_rate=2e-5):
@@ -430,23 +434,23 @@ def main():
                        help='배치 크기')
     parser.add_argument('--learning_rate', type=float, default=2e-5,
                        help='학습률')
+    parser.add_argument('--experiment', type=str, default=None, help='실험 config 이름 (예: mobilebert_mobilevit)')
     
     args = parser.parse_args()
     
     if args.fold is not None:
-        # 특정 fold만 훈련
         train_single_fold(
-            args.fold, model_type=args.model_type,
+            args.fold, experiment=args.experiment, model_type=args.model_type,
             num_epochs=args.epochs, batch_size=args.batch_size, 
             learning_rate=args.learning_rate
         )
     else:
-        # 모든 fold 훈련
-        train_all_folds(
-            model_type=args.model_type,
-            num_epochs=args.epochs, batch_size=args.batch_size, 
-            learning_rate=args.learning_rate
-        )
+        for fold in range(1, 6):
+            train_single_fold(
+                fold, experiment=args.experiment, model_type=args.model_type,
+                num_epochs=args.epochs, batch_size=args.batch_size, 
+                learning_rate=args.learning_rate
+            )
 
 
 if __name__ == "__main__":

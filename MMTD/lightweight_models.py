@@ -1,4 +1,5 @@
 from transformers import DistilBertForSequenceClassification, ViTForImageClassification, DistilBertConfig, ViTConfig
+from transformers import MobileBertForSequenceClassification, MobileViTForImageClassification
 from transformers.models.bert.modeling_bert import SequenceClassifierOutput
 from torch.nn import CrossEntropyLoss
 import torch
@@ -147,6 +148,75 @@ class UltraLightMMTD(torch.nn.Module):
 
     def get_model_size(self):
         """모델 파라미터 수 계산"""
+        total_params = sum(p.numel() for p in self.parameters())
+        trainable_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
+        return {
+            'total_parameters': total_params,
+            'trainable_parameters': trainable_params,
+            'total_size_mb': total_params * 4 / (1024 * 1024)
+        }
+
+
+class MobileBertMobileViTMMTD(torch.nn.Module):
+    """
+    MobileBert + MobileViT 기반 멀티모달 모델
+    - 텍스트: MobileBert
+    - 이미지: MobileViT
+    - 구조는 LightWeightMMTD와 유사하게 단순 융합 및 분류
+    """
+    def __init__(self, bert_pretrain_weight=None, vit_pretrain_weight=None):
+        super(MobileBertMobileViTMMTD, self).__init__()
+        # MobileBert 텍스트 인코더
+        if bert_pretrain_weight is not None:
+            self.text_encoder = MobileBertForSequenceClassification.from_pretrained(bert_pretrain_weight)
+        else:
+            self.text_encoder = MobileBertForSequenceClassification.from_pretrained('google/mobilebert-uncased')
+        # MobileViT 이미지 인코더
+        if vit_pretrain_weight is not None:
+            self.image_encoder = MobileViTForImageClassification.from_pretrained(vit_pretrain_weight)
+        else:
+            self.image_encoder = MobileViTForImageClassification.from_pretrained('apple/mobilevit-small')
+        self.text_encoder.config.output_hidden_states = True
+        self.image_encoder.config.output_hidden_states = True
+        text_dim = self.text_encoder.config.hidden_size
+        image_dim = self.image_encoder.config.hidden_size
+        fusion_dim = min(text_dim, image_dim)  # 보수적으로 작은 쪽에 맞춤
+        self.fusion_fc = torch.nn.Sequential(
+            torch.nn.Linear(text_dim + image_dim, fusion_dim),
+            torch.nn.ReLU(),
+            torch.nn.Dropout(0.1)
+        )
+        self.pooler = torch.nn.Sequential(
+            torch.nn.Linear(fusion_dim, fusion_dim),
+            torch.nn.Tanh()
+        )
+        self.classifier = torch.nn.Linear(fusion_dim, 2)
+        self.num_labels = 2
+
+    def forward(self, input_ids, attention_mask, pixel_values, labels=None, token_type_ids=None):
+        device = input_ids.device if input_ids is not None else pixel_values.device
+        text_outputs = self.text_encoder(input_ids=input_ids, attention_mask=attention_mask)
+        image_outputs = self.image_encoder(pixel_values=pixel_values)
+        text_last_hidden_state = text_outputs.hidden_states[-1]
+        image_last_hidden_state = image_outputs.hidden_states[-1]
+        text_vec = text_last_hidden_state[:, 0, :]
+        image_vec = image_last_hidden_state[:, 0, :]
+        fused_features = torch.cat([text_vec, image_vec], dim=1)
+        outputs = self.fusion_fc(fused_features)
+        outputs = self.pooler(outputs)
+        logits = self.classifier(outputs)
+        loss = None
+        if labels is not None:
+            loss_fct = CrossEntropyLoss()
+            loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+        return SequenceClassifierOutput(
+            loss=loss,
+            logits=logits,
+            hidden_states=None,
+            attentions=None,
+        )
+
+    def get_model_size(self):
         total_params = sum(p.numel() for p in self.parameters())
         trainable_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
         return {

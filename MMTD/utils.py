@@ -12,6 +12,7 @@ from torchtext.data.utils import get_tokenizer
 import pandas as pd
 import yaml
 import os
+from transformers import MobileBertTokenizerFast, MobileViTImageProcessor
 
 
 class SplitData:
@@ -122,6 +123,26 @@ class ViLTCollator:
         img_out = self.feature_extractor(pic_list, return_tensors='pt').data
         out.update(img_out)
         out['labels'] = torch.stack(label_list, dim=0)
+        return out
+
+
+class MobileBertMobileViTCollator:
+    def __init__(self):
+        self.tokenizer = MobileBertTokenizerFast.from_pretrained('google/mobilebert-uncased')
+        self.feature_extractor = MobileViTImageProcessor.from_pretrained('apple/mobilevit-small')
+
+    def __call__(self, data):
+        text_list = []
+        pic_list = []
+        label_list = []
+        for item in data:
+            text_list.append(item[0])
+            pic_list.append(item[1])
+            label_list.append(item[2])
+        out = self.tokenizer(text_list, return_tensors='pt', max_length=256, truncation=True, padding='max_length').data
+        img_out = self.feature_extractor(pic_list, return_tensors='pt').data
+        out.update(img_out)
+        out['labels'] = torch.LongTensor(label_list)
         return out
 
 
