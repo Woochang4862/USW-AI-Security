@@ -112,6 +112,10 @@ def main():
     output = classifier(fused_features)
     predictions = torch.softmax(output, dim=1).detach().cpu().numpy()
 
+    # spam/ham 라벨 결정 (1=spam, 0=ham)
+    pred_labels = predictions.argmax(axis=1)
+    pred_label_names = ["ham" if l == 0 else "spam" for l in pred_labels]
+
     # 성능 측정 종료
     perf = monitor.stop()
 
@@ -125,6 +129,8 @@ def main():
         'image_tensor_shape': list(pixel_values.shape),
         'output_shape': list(predictions.shape),
         'predictions': predictions.tolist(),
+        'pred_labels': pred_labels.tolist(),
+        'pred_label_names': pred_label_names,
         'performance': perf
     }
 
@@ -133,7 +139,8 @@ def main():
         json.dump(result, f, indent=2, ensure_ascii=False)
     print(f"[INFO] 결과가 {args.output}에 저장되었습니다.")
     print(json.dumps(perf, indent=2, ensure_ascii=False))
-    print(f"[INFO] 예측 결과(softmax): {predictions}")
+    for i, (text, img, pred, label) in enumerate(zip(texts, image_paths, predictions, pred_label_names)):
+        print(f"샘플 {i+1}: {label.upper()} (softmax={pred})\n  - 본문: {text[:50]}...\n  - 이미지: {img}")
 
 if __name__ == "__main__":
     main() 
