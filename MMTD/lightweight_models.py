@@ -179,7 +179,9 @@ class MobileBertMobileViTMMTD(torch.nn.Module):
         self.text_encoder.config.output_hidden_states = True
         self.image_encoder.config.output_hidden_states = True
         text_dim = self.text_encoder.config.hidden_size
-        image_dim = self.image_encoder.config.hidden_size
+        image_dim = getattr(self.image_encoder.config, 'embedding_dim', None)
+        if image_dim is None:
+            image_dim = self.image_encoder.config.hidden_sizes[0]
         fusion_dim = min(text_dim, image_dim)  # 보수적으로 작은 쪽에 맞춤
         self.fusion_fc = torch.nn.Sequential(
             torch.nn.Linear(text_dim + image_dim, fusion_dim),
