@@ -187,21 +187,9 @@ class MobileBertMobileViTMMTD(torch.nn.Module):
             self.image_encoder = MobileViTForImageClassification.from_pretrained('apple/mobilevit-small')
         self.text_encoder.config.output_hidden_states = True
         self.image_encoder.config.output_hidden_states = True
-        text_dim = self.text_encoder.config.hidden_size
-        image_dim = getattr(self.image_encoder.config, 'embedding_dim', None)
-        if image_dim is None:
-            image_dim = self.image_encoder.config.hidden_sizes[0]
-        fusion_dim = min(text_dim, image_dim)  # 보수적으로 작은 쪽에 맞춤
-        self.fusion_fc = torch.nn.Sequential(
-            torch.nn.Linear(text_dim + image_dim, fusion_dim),
-            torch.nn.ReLU(),
-            torch.nn.Dropout(0.1)
-        )
-        self.pooler = torch.nn.Sequential(
-            torch.nn.Linear(fusion_dim, fusion_dim),
-            torch.nn.Tanh()
-        )
-        self.classifier = torch.nn.Linear(fusion_dim, 2)
+        self.fusion_fc = None  # Lazy init
+        self.pooler = None
+        self.classifier = None
         self.num_labels = 2
 
     def forward(self, input_ids, attention_mask, pixel_values, labels=None, token_type_ids=None):
@@ -213,7 +201,6 @@ class MobileBertMobileViTMMTD(torch.nn.Module):
         text_vec = text_last_hidden_state[:, 0, :]
         # MobileViT의 출력 shape에 따라 분기
         if image_last_hidden_state.ndim == 4:
-            # (batch, channels, height, width) → (batch, channels)
             image_vec = image_last_hidden_state.mean(dim=[2, 3])
         elif image_last_hidden_state.ndim == 3:
             image_vec = image_last_hidden_state[:, 0, :]
@@ -222,6 +209,20 @@ class MobileBertMobileViTMMTD(torch.nn.Module):
         else:
             raise ValueError(f'Unexpected image_last_hidden_state shape: {image_last_hidden_state.shape}')
         fused_features = torch.cat([text_vec, image_vec], dim=1)
+        # Lazy layer creation
+        if self.fusion_fc is None:
+            in_dim = fused_features.shape[1]
+            fusion_dim = min(text_vec.shape[1], image_vec.shape[1])
+            self.fusion_fc = torch.nn.Sequential(
+                torch.nn.Linear(in_dim, fusion_dim),
+                torch.nn.ReLU(),
+                torch.nn.Dropout(0.1)
+            )
+            self.pooler = torch.nn.Sequential(
+                torch.nn.Linear(fusion_dim, fusion_dim),
+                torch.nn.Tanh()
+            )
+            self.classifier = torch.nn.Linear(fusion_dim, 2)
         outputs = self.fusion_fc(fused_features)
         outputs = self.pooler(outputs)
         logits = self.classifier(outputs)
