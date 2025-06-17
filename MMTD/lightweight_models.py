@@ -64,7 +64,13 @@ class LightWeightMMTD(torch.nn.Module):
         text_last_hidden_state = text_outputs.hidden_states[-1]
         image_last_hidden_state = image_outputs.hidden_states[-1]
         text_vec = text_last_hidden_state[:, 0, :]
-        image_vec = image_last_hidden_state[:, 0, :]
+        # MobileViT의 출력 shape에 따라 분기
+        if image_last_hidden_state.ndim == 3:
+            image_vec = image_last_hidden_state[:, 0, :]
+        elif image_last_hidden_state.ndim == 2:
+            image_vec = image_last_hidden_state
+        else:
+            raise ValueError(f'Unexpected image_last_hidden_state shape: {image_last_hidden_state.shape}')
         fused_features = torch.cat([text_vec, image_vec], dim=1)
         outputs = self.fusion_fc(fused_features)
         outputs = self.pooler(outputs)
@@ -202,7 +208,13 @@ class MobileBertMobileViTMMTD(torch.nn.Module):
         text_last_hidden_state = text_outputs.hidden_states[-1]
         image_last_hidden_state = image_outputs.hidden_states[-1]
         text_vec = text_last_hidden_state[:, 0, :]
-        image_vec = image_last_hidden_state[:, 0, :]
+        # MobileViT의 출력 shape에 따라 분기
+        if image_last_hidden_state.ndim == 3:
+            image_vec = image_last_hidden_state[:, 0, :]
+        elif image_last_hidden_state.ndim == 2:
+            image_vec = image_last_hidden_state
+        else:
+            raise ValueError(f'Unexpected image_last_hidden_state shape: {image_last_hidden_state.shape}')
         fused_features = torch.cat([text_vec, image_vec], dim=1)
         outputs = self.fusion_fc(fused_features)
         outputs = self.pooler(outputs)
