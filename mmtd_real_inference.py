@@ -74,7 +74,12 @@ def main():
 
     # 모델 로드
     print("[INFO] MMTD 논문 모델 로딩...")
-    model = MMTD()
+    bert_pretrain = 'bert-base-multilingual-cased'
+    beit_pretrain = 'microsoft/beit-base-patch16-224-pt22k'
+    model = MMTD(
+        bert_pretrain_weight=bert_pretrain,
+        beit_pretrain_weight=beit_pretrain
+    )
     checkpoint_path = "MMTD/checkpoints/fold1/checkpoint-939/pytorch_model.bin"
     state_dict = torch.load(checkpoint_path, map_location=device)
     model.load_state_dict(state_dict, strict=False)
