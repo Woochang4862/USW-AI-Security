@@ -217,12 +217,12 @@ class MobileBertMobileViTMMTD(torch.nn.Module):
                 torch.nn.Linear(in_dim, fusion_dim),
                 torch.nn.ReLU(),
                 torch.nn.Dropout(0.1)
-            )
+            ).to(fused_features.device)
             self.pooler = torch.nn.Sequential(
                 torch.nn.Linear(fusion_dim, fusion_dim),
                 torch.nn.Tanh()
-            )
-            self.classifier = torch.nn.Linear(fusion_dim, 2)
+            ).to(fused_features.device)
+            self.classifier = torch.nn.Linear(fusion_dim, 2).to(fused_features.device)
         outputs = self.fusion_fc(fused_features)
         outputs = self.pooler(outputs)
         logits = self.classifier(outputs)
