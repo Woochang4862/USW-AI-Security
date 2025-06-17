@@ -65,7 +65,10 @@ class LightWeightMMTD(torch.nn.Module):
         image_last_hidden_state = image_outputs.hidden_states[-1]
         text_vec = text_last_hidden_state[:, 0, :]
         # MobileViT의 출력 shape에 따라 분기
-        if image_last_hidden_state.ndim == 3:
+        if image_last_hidden_state.ndim == 4:
+            # (batch, channels, height, width) → (batch, channels)
+            image_vec = image_last_hidden_state.mean(dim=[2, 3])
+        elif image_last_hidden_state.ndim == 3:
             image_vec = image_last_hidden_state[:, 0, :]
         elif image_last_hidden_state.ndim == 2:
             image_vec = image_last_hidden_state
@@ -209,7 +212,10 @@ class MobileBertMobileViTMMTD(torch.nn.Module):
         image_last_hidden_state = image_outputs.hidden_states[-1]
         text_vec = text_last_hidden_state[:, 0, :]
         # MobileViT의 출력 shape에 따라 분기
-        if image_last_hidden_state.ndim == 3:
+        if image_last_hidden_state.ndim == 4:
+            # (batch, channels, height, width) → (batch, channels)
+            image_vec = image_last_hidden_state.mean(dim=[2, 3])
+        elif image_last_hidden_state.ndim == 3:
             image_vec = image_last_hidden_state[:, 0, :]
         elif image_last_hidden_state.ndim == 2:
             image_vec = image_last_hidden_state
