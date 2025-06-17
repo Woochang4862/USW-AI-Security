@@ -14,6 +14,7 @@ from typing import List, Dict
 from PIL import Image
 from transformers import BertTokenizerFast, AutoFeatureExtractor
 import numpy as np
+from MMTD.models import MMTD
 
 # 경로 설정
 sys.path.append('./MMTD')
@@ -72,10 +73,13 @@ def main():
     print(f"[INFO] 디바이스: {device}")
 
     # 모델 로드
-    print("[INFO] BERT 다국어 토크나이저 로딩...")
-    tokenizer = BertTokenizerFast.from_pretrained('bert-base-multilingual-cased')
-    print("[INFO] DiT 이미지 특성 추출기 로딩...")
-    feature_extractor = AutoFeatureExtractor.from_pretrained('microsoft/dit-base')
+    print("[INFO] MMTD 논문 모델 로딩...")
+    model = MMTD()
+    checkpoint_path = "MMTD/checkpoints/fold1/checkpoint-939/pytorch_model.bin"
+    state_dict = torch.load(checkpoint_path, map_location=device)
+    model.load_state_dict(state_dict, strict=False)
+    model.to(device)
+    model.eval()
 
     # 성능 측정
     monitor = PerformanceMonitor()
@@ -83,6 +87,7 @@ def main():
 
     # 텍스트 인코딩
     print("[INFO] 텍스트 인코딩...")
+    tokenizer = BertTokenizerFast.from_pretrained('bert-base-multilingual-cased')
     text_encoded = tokenizer(
         texts,
         return_tensors='pt',
@@ -92,25 +97,29 @@ def main():
     )
     input_ids = text_encoded['input_ids'].to(device)
     attention_mask = text_encoded['attention_mask'].to(device)
+    # token_type_ids는 BERT에서 필요
+    token_type_ids = text_encoded.get('token_type_ids', torch.zeros_like(input_ids)).to(device)
 
     # 이미지 인코딩
     print("[INFO] 이미지 인코딩...")
+    feature_extractor = AutoFeatureExtractor.from_pretrained('microsoft/dit-base')
     image_encoded = feature_extractor(
         images,
         return_tensors='pt'
     )
     pixel_values = image_encoded['pixel_values'].to(device)
 
-    # 멀티모달 융합 (시뮬레이션)
-    print("[INFO] 멀티모달 융합(시뮬레이션) 및 분류...")
-    batch_size = input_ids.shape[0]
-    # 실제 모델이 아니라, 특성 추출 후 임의의 융합 및 분류 시뮬레이션
-    text_features = torch.randn(batch_size, 768).to(device)
-    image_features = torch.randn(batch_size, 768).to(device)
-    fused_features = torch.cat([text_features, image_features], dim=1)
-    classifier = torch.nn.Linear(1536, 2).to(device)
-    output = classifier(fused_features)
-    predictions = torch.softmax(output, dim=1).detach().cpu().numpy()
+    # 실제 논문 모델 추론
+    print("[INFO] 실제 MMTD 모델로 추론...")
+    with torch.no_grad():
+        outputs = model(
+            input_ids=input_ids,
+            token_type_ids=token_type_ids,
+            attention_mask=attention_mask,
+            pixel_values=pixel_values
+        )
+        logits = outputs.logits.detach().cpu().numpy()
+        predictions = torch.softmax(torch.tensor(logits), dim=1).numpy()
 
     # spam/ham 라벨 결정 (1=spam, 0=ham)
     pred_labels = predictions.argmax(axis=1)
@@ -122,7 +131,7 @@ def main():
     # 결과 정리
     result = {
         'device': str(device),
-        'num_samples': batch_size,
+        'num_samples': len(texts),
         'input_texts': texts,
         'input_image_paths': image_paths,
         'text_tensor_shape': list(input_ids.shape),
