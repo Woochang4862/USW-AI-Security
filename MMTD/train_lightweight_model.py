@@ -13,6 +13,10 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
 
+os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["TORCH_USE_CUDA_DSA"] = '1'
+
 # 경량화 모델 임포트
 from lightweight_models import LightWeightMMTD, UltraLightMMTD, GeneralizedMMTD
 from utils import MobileBertMobileViTCollator
