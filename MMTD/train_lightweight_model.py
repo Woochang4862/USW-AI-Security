@@ -2,7 +2,7 @@ import os
 import torch
 import pandas as pd
 import numpy as np
-from transformers import DistilBertTokenizerFast, ViTFeatureExtractor, get_linear_schedule_with_warmup, DistilBertForSequenceClassification, AutoTokenizer, AutoFeatureExtractor, DeiTForImageClassification, ViTForImageClassification, AutoModelForSequenceClassification, MobileBertForSequenceClassification, MobileViTForImageClassification
+from transformers import DistilBertTokenizerFast, ViTFeatureExtractor, get_linear_schedule_with_warmup, DistilBertForSequenceClassification, AutoTokenizer, AutoFeatureExtractor, DeiTForImageClassification, ViTForImageClassification, AutoModelForSequenceClassification, MobileBertForSequenceClassification, MobileViTForImageClassification, MobileBertTokenizer, MobileViTImageProcessor
 from torch.utils.data import DataLoader, Dataset
 from torch.optim import AdamW
 from sklearn.metrics import accuracy_score, classification_report
@@ -49,33 +49,31 @@ class EmailDataset(Dataset):
         return len(self.data)
 
 
-class LightweightCollator:
-    """경량화 모델용 데이터 콜레이터"""
-    def __init__(self):
-        self.tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-multilingual-cased')
-        self.feature_extractor = ViTFeatureExtractor.from_pretrained('google/vit-base-patch16-224-in21k')
+class DynamicCollator:
+    def __init__(self, text_model_name, image_model_name):
+        if "mobilebert" in text_model_name:
+            self.tokenizer = MobileBertTokenizer.from_pretrained(text_model_name)
+        else:
+            self.tokenizer = DistilBertTokenizerFast.from_pretrained(text_model_name)
+        if "mobilevit" in image_model_name:
+            self.feature_extractor = MobileViTImageProcessor.from_pretrained(image_model_name)
+        else:
+            self.feature_extractor = ViTFeatureExtractor.from_pretrained(image_model_name)
 
     def __call__(self, batch):
         texts, images, labels = zip(*batch)
-        
-        # 텍스트 처리
         text_inputs = self.tokenizer(
-            list(texts), 
-            return_tensors='pt', 
-            max_length=256, 
+            list(texts),
+            return_tensors='pt',
+            max_length=256,
             truncation=True,
             padding='max_length'
         )
-        
-        # 이미지 처리
         image_inputs = self.feature_extractor(list(images), return_tensors='pt')
-        
-        # 결합
         inputs = {}
         inputs.update(text_inputs)
         inputs.update(image_inputs)
         inputs['labels'] = torch.LongTensor(labels)
-        
         return inputs
 
 
@@ -243,7 +241,7 @@ experiment_configs = {
     # MobileBert + MobileViT
     "mobilebert_mobilevit": {
         "model_class": GeneralizedMMTD,
-        "collator_class": LightweightCollator,
+        "collator_class": lambda: DynamicCollator("google/mobilebert-uncased", "apple/mobilevit-small"),
         "text_encoder_cls": MobileBertForSequenceClassification,
         "image_encoder_cls": MobileViTForImageClassification,
         "text_encoder_name": "google/mobilebert-uncased",
@@ -254,7 +252,7 @@ experiment_configs = {
     # MobileBert + DeiT
     "mobilebert_deit": {
         "model_class": GeneralizedMMTD,
-        "collator_class": LightweightCollator,
+        "collator_class": lambda: DynamicCollator("google/mobilebert-uncased", "facebook/deit-base-patch16-224"),
         "text_encoder_cls": MobileBertForSequenceClassification,
         "image_encoder_cls": DeiTForImageClassification,
         "text_encoder_name": "google/mobilebert-uncased",
@@ -265,7 +263,7 @@ experiment_configs = {
     # DistilBERT + MobileViT
     "distilbert_mobilevit": {
         "model_class": GeneralizedMMTD,
-        "collator_class": LightweightCollator,
+        "collator_class": lambda: DynamicCollator("distilbert-base-multilingual-cased", "apple/mobilevit-small"),
         "text_encoder_cls": DistilBertForSequenceClassification,
         "image_encoder_cls": MobileViTForImageClassification,
         "text_encoder_name": "distilbert-base-multilingual-cased",
@@ -276,7 +274,7 @@ experiment_configs = {
     # DistilBERT + DeiT
     "distilbert_deit": {
         "model_class": GeneralizedMMTD,
-        "collator_class": LightweightCollator,
+        "collator_class": lambda: DynamicCollator("distilbert-base-multilingual-cased", "facebook/deit-base-patch16-224"),
         "text_encoder_cls": DistilBertForSequenceClassification,
         "image_encoder_cls": DeiTForImageClassification,
         "text_encoder_name": "distilbert-base-multilingual-cased",
@@ -319,7 +317,7 @@ def train_single_fold(fold_num, experiment=None, model_type='lightweight',
         checkpoint_path = config["checkpoint_path"]
     else:
         # 기존 방식
-        collator = LightweightCollator()
+        collator = DynamicCollator("distilbert-base-multilingual-cased", "facebook/deit-base-patch16-224")
         model = LightWeightMMTD() if model_type == 'lightweight' else UltraLightMMTD()
         model_name = model.__class__.__name__
         save_path = f'lightweight_checkpoints/{model_name.lower()}_fold{fold_num}'
