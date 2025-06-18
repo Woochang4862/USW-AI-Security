@@ -2,7 +2,7 @@ import os
 import torch
 import pandas as pd
 import numpy as np
-from transformers import DistilBertTokenizerFast, ViTFeatureExtractor, get_linear_schedule_with_warmup, DistilBertForSequenceClassification, AutoTokenizer, AutoFeatureExtractor, DeiTForImageClassification, ViTForImageClassification, AutoModelForSequenceClassification
+from transformers import DistilBertTokenizerFast, ViTFeatureExtractor, get_linear_schedule_with_warmup, DistilBertForSequenceClassification, AutoTokenizer, AutoFeatureExtractor, DeiTForImageClassification, ViTForImageClassification, AutoModelForSequenceClassification, MobileBertForSequenceClassification, MobileViTForImageClassification
 from torch.utils.data import DataLoader, Dataset
 from torch.optim import AdamW
 from sklearn.metrics import accuracy_score, classification_report
@@ -236,26 +236,37 @@ def plot_training_history(history, save_path='lightweight_checkpoints'):
 
 # 실험 config 정의 (MobileBERT, MobileViT 제외)
 experiment_configs = {
-    # DistilBERT + ViT-Base (공식 모델)
-    "distilbert_vit_tiny": {
+    # MobileBert + MobileViT
+    "mobilebert_mobilevit": {
+        "model_class": GeneralizedMMTD,
+        "collator_class": LightweightCollator,
+        "text_encoder_cls": MobileBertForSequenceClassification,
+        "image_encoder_cls": MobileViTForImageClassification,
+        "text_encoder_name": "google/mobilebert-uncased",
+        "image_encoder_name": "apple/mobilevit-small",
+        "checkpoint_path": "outputs/mobilebert_mobilevit/best_model.pth",
+        "batch_size": 32,
+    },
+    # MobileBert + DeiT
+    "mobilebert_deit": {
+        "model_class": GeneralizedMMTD,
+        "collator_class": LightweightCollator,
+        "text_encoder_cls": MobileBertForSequenceClassification,
+        "image_encoder_cls": DeiTForImageClassification,
+        "text_encoder_name": "google/mobilebert-uncased",
+        "image_encoder_name": "facebook/deit-base-patch16-224",
+        "checkpoint_path": "outputs/mobilebert_deit/best_model.pth",
+        "batch_size": 32,
+    },
+    # DistilBERT + MobileViT
+    "distilbert_mobilevit": {
         "model_class": GeneralizedMMTD,
         "collator_class": LightweightCollator,
         "text_encoder_cls": DistilBertForSequenceClassification,
-        "image_encoder_cls": ViTForImageClassification,
+        "image_encoder_cls": MobileViTForImageClassification,
         "text_encoder_name": "distilbert-base-multilingual-cased",
-        "image_encoder_name": "google/vit-base-patch16-224-in21k",
-        "checkpoint_path": "outputs/distilbert_vit_tiny/best_model.pth",
-        "batch_size": 32,
-    },
-    # TinyBERT + ViT-Base (공식 모델)
-    "tinybert_vit_tiny": {
-        "model_class": GeneralizedMMTD,
-        "collator_class": LightweightCollator,
-        "text_encoder_cls": AutoModelForSequenceClassification,
-        "image_encoder_cls": ViTForImageClassification,
-        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
-        "image_encoder_name": "google/vit-base-patch16-224-in21k",
-        "checkpoint_path": "outputs/tinybert_vit_tiny/best_model.pth",
+        "image_encoder_name": "apple/mobilevit-small",
+        "checkpoint_path": "outputs/distilbert_mobilevit/best_model.pth",
         "batch_size": 32,
     },
     # DistilBERT + DeiT
@@ -267,83 +278,6 @@ experiment_configs = {
         "text_encoder_name": "distilbert-base-multilingual-cased",
         "image_encoder_name": "facebook/deit-base-patch16-224",
         "checkpoint_path": "outputs/distilbert_deit/best_model.pth",
-        "batch_size": 32,
-    },
-    # TinyBERT + DeiT
-    "tinybert_deit": {
-        "model_class": GeneralizedMMTD,
-        "collator_class": LightweightCollator,
-        "text_encoder_cls": AutoModelForSequenceClassification,
-        "image_encoder_cls": DeiTForImageClassification,
-        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
-        "image_encoder_name": "facebook/deit-base-patch16-224",
-        "checkpoint_path": "outputs/tinybert_deit/best_model.pth",
-        "batch_size": 32,
-    },
-    # DistilBERT + ViT-Base (alt variant)
-    "distilbert_vit_tiny_alt": {
-        "model_class": GeneralizedMMTD,
-        "collator_class": LightweightCollator,
-        "text_encoder_cls": DistilBertForSequenceClassification,
-        "image_encoder_cls": ViTForImageClassification,
-        "text_encoder_name": "distilbert-base-multilingual-cased",
-        "image_encoder_name": "google/vit-base-patch16-224-in21k",
-        "checkpoint_path": "outputs/distilbert_vit_tiny_alt/best_model.pth",
-        "batch_size": 32,
-    },
-    # TinyBERT + ViT-Base (alt variant)
-    "tinybert_vit_tiny_alt": {
-        "model_class": GeneralizedMMTD,
-        "collator_class": LightweightCollator,
-        "text_encoder_cls": AutoModelForSequenceClassification,
-        "image_encoder_cls": ViTForImageClassification,
-        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
-        "image_encoder_name": "google/vit-base-patch16-224-in21k",
-        "checkpoint_path": "outputs/tinybert_vit_tiny_alt/best_model.pth",
-        "batch_size": 32,
-    },
-    # DistilBERT + DeiT (small)
-    "distilbert_deit_small": {
-        "model_class": GeneralizedMMTD,
-        "collator_class": LightweightCollator,
-        "text_encoder_cls": DistilBertForSequenceClassification,
-        "image_encoder_cls": DeiTForImageClassification,
-        "text_encoder_name": "distilbert-base-multilingual-cased",
-        "image_encoder_name": "facebook/deit-small-patch16-224",
-        "checkpoint_path": "outputs/distilbert_deit_small/best_model.pth",
-        "batch_size": 32,
-    },
-    # TinyBERT + DeiT (small)
-    "tinybert_deit_small": {
-        "model_class": GeneralizedMMTD,
-        "collator_class": LightweightCollator,
-        "text_encoder_cls": AutoModelForSequenceClassification,
-        "image_encoder_cls": DeiTForImageClassification,
-        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
-        "image_encoder_name": "facebook/deit-small-patch16-224",
-        "checkpoint_path": "outputs/tinybert_deit_small/best_model.pth",
-        "batch_size": 32,
-    },
-    # DistilBERT + ViT-Small (경량화)
-    "distilbert_vit_small": {
-        "model_class": GeneralizedMMTD,
-        "collator_class": LightweightCollator,
-        "text_encoder_cls": DistilBertForSequenceClassification,
-        "image_encoder_cls": ViTForImageClassification,
-        "text_encoder_name": "distilbert-base-multilingual-cased",
-        "image_encoder_name": "google/vit-small-patch16-224",
-        "checkpoint_path": "outputs/distilbert_vit_small/best_model.pth",
-        "batch_size": 32,
-    },
-    # TinyBERT + ViT-Small (경량화)
-    "tinybert_vit_small": {
-        "model_class": GeneralizedMMTD,
-        "collator_class": LightweightCollator,
-        "text_encoder_cls": AutoModelForSequenceClassification,
-        "image_encoder_cls": ViTForImageClassification,
-        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
-        "image_encoder_name": "google/vit-small-patch16-224",
-        "checkpoint_path": "outputs/tinybert_vit_small/best_model.pth",
         "batch_size": 32,
     },
 }
