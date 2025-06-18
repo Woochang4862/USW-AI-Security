@@ -18,7 +18,7 @@ from lightweight_models import LightWeightMMTD, UltraLightMMTD, MobileBertMobile
 from utils import MobileBertMobileViTCollator
 
 # TinyBERT는 transformers에서 'huawei-noah/TinyBERT_General_4L_312D' 등으로 사용
-from transformers import DeiTForImageClassification, TinyViTForImageClassification
+from transformers import DeiTForImageClassification, ViTForImageClassification
 
 
 class EmailDataset(Dataset):
