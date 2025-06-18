@@ -244,4 +244,76 @@ class MobileBertMobileViTMMTD(torch.nn.Module):
             'total_parameters': total_params,
             'trainable_parameters': trainable_params,
             'total_size_mb': total_params * 4 / (1024 * 1024)
+        }
+
+
+class GeneralizedMMTD(torch.nn.Module):
+    """
+    범용 멀티모달 모델
+    - 텍스트/이미지 인코더 클래스를 외부에서 주입받아 다양한 조합 지원
+    - 예: DistilBERT+DeiT, TinyBERT+TinyViT 등
+    """
+    def __init__(self, text_encoder_cls, image_encoder_cls, text_pretrain_weight, image_pretrain_weight):
+        super().__init__()
+        self.text_encoder = text_encoder_cls.from_pretrained(text_pretrain_weight)
+        self.image_encoder = image_encoder_cls.from_pretrained(image_pretrain_weight)
+        self.text_encoder.config.output_hidden_states = True
+        self.image_encoder.config.output_hidden_states = True
+        self.fusion_fc = None  # Lazy init
+        self.pooler = None
+        self.classifier = None
+        self.num_labels = 2
+
+    def forward(self, input_ids, attention_mask, pixel_values, labels=None, token_type_ids=None):
+        device = input_ids.device if input_ids is not None else pixel_values.device
+        text_outputs = self.text_encoder(input_ids=input_ids, attention_mask=attention_mask)
+        image_outputs = self.image_encoder(pixel_values=pixel_values)
+        text_last_hidden_state = text_outputs.hidden_states[-1]
+        image_last_hidden_state = image_outputs.hidden_states[-1]
+        text_vec = text_last_hidden_state[:, 0, :]
+        # 이미지 인코더 출력 pooling (CNN/ViT/DeiT/TinyViT 등 모두 지원)
+        if image_last_hidden_state.ndim == 4:
+            image_vec = image_last_hidden_state.mean(dim=[2, 3])
+        elif image_last_hidden_state.ndim == 3:
+            image_vec = image_last_hidden_state[:, 0, :]
+        elif image_last_hidden_state.ndim == 2:
+            image_vec = image_last_hidden_state
+        else:
+            raise ValueError(f'Unexpected image_last_hidden_state shape: {image_last_hidden_state.shape}')
+        fused_features = torch.cat([text_vec, image_vec], dim=1)
+        # Lazy layer creation
+        if self.fusion_fc is None:
+            in_dim = fused_features.shape[1]
+            fusion_dim = min(text_vec.shape[1], image_vec.shape[1])
+            self.fusion_fc = torch.nn.Sequential(
+                torch.nn.Linear(in_dim, fusion_dim),
+                torch.nn.ReLU(),
+                torch.nn.Dropout(0.1)
+            ).to(fused_features.device)
+            self.pooler = torch.nn.Sequential(
+                torch.nn.Linear(fusion_dim, fusion_dim),
+                torch.nn.Tanh()
+            ).to(fused_features.device)
+            self.classifier = torch.nn.Linear(fusion_dim, 2).to(fused_features.device)
+        outputs = self.fusion_fc(fused_features)
+        outputs = self.pooler(outputs)
+        logits = self.classifier(outputs)
+        loss = None
+        if labels is not None:
+            loss_fct = CrossEntropyLoss()
+            loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+        return SequenceClassifierOutput(
+            loss=loss,
+            logits=logits,
+            hidden_states=None,
+            attentions=None,
+        )
+
+    def get_model_size(self):
+        total_params = sum(p.numel() for p in self.parameters())
+        trainable_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
+        return {
+            'total_parameters': total_params,
+            'trainable_parameters': trainable_params,
+            'total_size_mb': total_params * 4 / (1024 * 1024)
         } 
