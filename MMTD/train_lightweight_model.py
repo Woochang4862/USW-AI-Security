@@ -2,7 +2,7 @@ import os
 import torch
 import pandas as pd
 import numpy as np
-from transformers import DistilBertTokenizerFast, ViTFeatureExtractor, get_linear_schedule_with_warmup, DistilBertForSequenceClassification, AutoTokenizer, AutoFeatureExtractor, DeiTForImageClassification, ViTForImageClassification
+from transformers import DistilBertTokenizerFast, ViTFeatureExtractor, get_linear_schedule_with_warmup, DistilBertForSequenceClassification, AutoTokenizer, AutoFeatureExtractor, DeiTForImageClassification, ViTForImageClassification, AutoModelForSequenceClassification
 from torch.utils.data import DataLoader, Dataset
 from torch.optim import AdamW
 from sklearn.metrics import accuracy_score, classification_report
