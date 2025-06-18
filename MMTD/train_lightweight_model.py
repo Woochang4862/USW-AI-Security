@@ -14,7 +14,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # 경량화 모델 임포트
-from lightweight_models import LightWeightMMTD, UltraLightMMTD, MobileBertMobileViTMMTD
+from lightweight_models import LightWeightMMTD, UltraLightMMTD, GeneralizedMMTD
 from utils import MobileBertMobileViTCollator
 
 # TinyBERT는 transformers에서 'huawei-noah/TinyBERT_General_4L_312D' 등으로 사용
@@ -238,7 +238,8 @@ def plot_training_history(history, save_path='lightweight_checkpoints'):
 experiment_configs = {
     # DistilBERT + ViT-Tiny
     "distilbert_vit_tiny": {
-        "model_class": LightWeightMMTD,
+        "model_class": GeneralizedMMTD,
+        "collator_class": LightweightCollator,
         "text_encoder_cls": DistilBertForSequenceClassification,
         "image_encoder_cls": ViTForImageClassification,
         "text_encoder_name": "distilbert-base-multilingual-cased",
@@ -248,7 +249,8 @@ experiment_configs = {
     },
     # TinyBERT + ViT-Tiny
     "tinybert_vit_tiny": {
-        "model_class": LightWeightMMTD,
+        "model_class": GeneralizedMMTD,
+        "collator_class": LightweightCollator,
         "text_encoder_cls": AutoModelForSequenceClassification,
         "image_encoder_cls": ViTForImageClassification,
         "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
@@ -258,7 +260,8 @@ experiment_configs = {
     },
     # DistilBERT + DeiT
     "distilbert_deit": {
-        "model_class": LightWeightMMTD,
+        "model_class": GeneralizedMMTD,
+        "collator_class": LightweightCollator,
         "text_encoder_cls": DistilBertForSequenceClassification,
         "image_encoder_cls": DeiTForImageClassification,
         "text_encoder_name": "distilbert-base-multilingual-cased",
@@ -268,7 +271,8 @@ experiment_configs = {
     },
     # TinyBERT + DeiT
     "tinybert_deit": {
-        "model_class": LightWeightMMTD,
+        "model_class": GeneralizedMMTD,
+        "collator_class": LightweightCollator,
         "text_encoder_cls": AutoModelForSequenceClassification,
         "image_encoder_cls": DeiTForImageClassification,
         "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
@@ -278,7 +282,8 @@ experiment_configs = {
     },
     # DistilBERT + ViT-Tiny (다른 variant 예시)
     "distilbert_vit_tiny_alt": {
-        "model_class": LightWeightMMTD,
+        "model_class": GeneralizedMMTD,
+        "collator_class": LightweightCollator,
         "text_encoder_cls": DistilBertForSequenceClassification,
         "image_encoder_cls": ViTForImageClassification,
         "text_encoder_name": "distilbert-base-multilingual-cased",
@@ -288,7 +293,8 @@ experiment_configs = {
     },
     # TinyBERT + ViT-Tiny (다른 variant 예시)
     "tinybert_vit_tiny_alt": {
-        "model_class": LightWeightMMTD,
+        "model_class": GeneralizedMMTD,
+        "collator_class": LightweightCollator,
         "text_encoder_cls": AutoModelForSequenceClassification,
         "image_encoder_cls": ViTForImageClassification,
         "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
@@ -298,7 +304,8 @@ experiment_configs = {
     },
     # DistilBERT + DeiT (small)
     "distilbert_deit_small": {
-        "model_class": LightWeightMMTD,
+        "model_class": GeneralizedMMTD,
+        "collator_class": LightweightCollator,
         "text_encoder_cls": DistilBertForSequenceClassification,
         "image_encoder_cls": DeiTForImageClassification,
         "text_encoder_name": "distilbert-base-multilingual-cased",
@@ -308,7 +315,8 @@ experiment_configs = {
     },
     # TinyBERT + DeiT (small)
     "tinybert_deit_small": {
-        "model_class": LightWeightMMTD,
+        "model_class": GeneralizedMMTD,
+        "collator_class": LightweightCollator,
         "text_encoder_cls": AutoModelForSequenceClassification,
         "image_encoder_cls": DeiTForImageClassification,
         "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
@@ -338,8 +346,15 @@ def train_single_fold(fold_num, experiment=None, model_type='lightweight',
         config = experiment_configs[experiment]
         collator = config["collator_class"]()
         batch_size = config.get("batch_size", batch_size)
-        model = config["model_class"]()
-        model_name = config["model_class"].__name__
+        
+        # GeneralizedMMTD 모델 생성
+        model = config["model_class"](
+            text_encoder_cls=config["text_encoder_cls"],
+            image_encoder_cls=config["image_encoder_cls"],
+            text_pretrain_weight=config["text_encoder_name"],
+            image_pretrain_weight=config["image_encoder_name"]
+        )
+        model_name = f"{config['model_class'].__name__}_{experiment}"
         save_path = os.path.dirname(config["checkpoint_path"])
         checkpoint_path = config["checkpoint_path"]
     else:
