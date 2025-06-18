@@ -2,7 +2,7 @@ import os
 import torch
 import pandas as pd
 import numpy as np
-from transformers import DistilBertTokenizerFast, ViTFeatureExtractor, get_linear_schedule_with_warmup, DistilBertForSequenceClassification, AutoTokenizer, AutoFeatureExtractor, DeiTForImageClassification, ViTForImageClassification, AutoModelForSequenceClassification, MobileBertForSequenceClassification, MobileViTForImageClassification, MobileBertTokenizer, MobileViTImageProcessor
+from transformers import DistilBertTokenizerFast, ViTFeatureExtractor, get_linear_schedule_with_warmup, DistilBertForSequenceClassification, AutoTokenizer, AutoFeatureExtractor, DeiTForImageClassification, ViTForImageClassification, AutoModelForSequenceClassification, MobileBertForSequenceClassification, MobileViTForImageClassification, MobileBertTokenizer, MobileViTImageProcessor, AutoImageProcessor, AutoModelForImageClassification
 from torch.utils.data import DataLoader, Dataset
 from torch.optim import AdamW
 from sklearn.metrics import accuracy_score, classification_report
@@ -55,8 +55,11 @@ class DynamicCollator:
             self.tokenizer = MobileBertTokenizer.from_pretrained(text_model_name)
         else:
             self.tokenizer = DistilBertTokenizerFast.from_pretrained(text_model_name)
+        # 이미지 프로세서 분기
         if "mobilevit" in image_model_name:
             self.feature_extractor = MobileViTImageProcessor.from_pretrained(image_model_name)
+        elif "deit" in image_model_name:
+            self.feature_extractor = AutoImageProcessor.from_pretrained(image_model_name)
         else:
             self.feature_extractor = ViTFeatureExtractor.from_pretrained(image_model_name)
 
@@ -254,7 +257,7 @@ experiment_configs = {
         "model_class": GeneralizedMMTD,
         "collator_class": lambda: DynamicCollator("google/mobilebert-uncased", "facebook/deit-base-patch16-224"),
         "text_encoder_cls": MobileBertForSequenceClassification,
-        "image_encoder_cls": DeiTForImageClassification,
+        "image_encoder_cls": AutoModelForImageClassification,
         "text_encoder_name": "google/mobilebert-uncased",
         "image_encoder_name": "facebook/deit-base-patch16-224",
         "checkpoint_path": "outputs/mobilebert_deit/best_model.pth",
@@ -276,7 +279,7 @@ experiment_configs = {
         "model_class": GeneralizedMMTD,
         "collator_class": lambda: DynamicCollator("distilbert-base-multilingual-cased", "facebook/deit-base-patch16-224"),
         "text_encoder_cls": DistilBertForSequenceClassification,
-        "image_encoder_cls": DeiTForImageClassification,
+        "image_encoder_cls": AutoModelForImageClassification,
         "text_encoder_name": "distilbert-base-multilingual-cased",
         "image_encoder_name": "facebook/deit-base-patch16-224",
         "checkpoint_path": "outputs/distilbert_deit/best_model.pth",
