@@ -2,7 +2,7 @@ import os
 import torch
 import pandas as pd
 import numpy as np
-from transformers import DistilBertTokenizerFast, ViTFeatureExtractor, get_linear_schedule_with_warmup
+from transformers import DistilBertTokenizerFast, ViTFeatureExtractor, get_linear_schedule_with_warmup, DistilBertForSequenceClassification, AutoTokenizer, AutoFeatureExtractor
 from torch.utils.data import DataLoader, Dataset
 from torch.optim import AdamW
 from sklearn.metrics import accuracy_score, classification_report
@@ -16,6 +16,9 @@ warnings.filterwarnings('ignore')
 # 경량화 모델 임포트
 from lightweight_models import LightWeightMMTD, UltraLightMMTD, MobileBertMobileViTMMTD
 from utils import MobileBertMobileViTCollator
+
+# TinyBERT는 transformers에서 'huawei-noah/TinyBERT_General_4L_312D' 등으로 사용
+from transformers import DeiTForImageClassification, TinyViTForImageClassification
 
 
 class EmailDataset(Dataset):
@@ -231,24 +234,78 @@ def plot_training_history(history, save_path='lightweight_checkpoints'):
     plt.close()
 
 
-# 실험 config 정의
+# 실험 config 정의 (MobileBERT, MobileViT 제외)
 experiment_configs = {
-    "mobilebert_mobilevit": {
-        "model_class": MobileBertMobileViTMMTD,
-        "collator_class": MobileBertMobileViTCollator,
-        "checkpoint_path": "outputs/mobilebert_mobilevit/best_model.pth",
+    # DistilBERT + DeiT
+    "distilbert_deit": {
+        "model_class": LightWeightMMTD,  # 실제로는 별도 커스텀 필요할 수 있음
+        "collator_class": LightweightCollator,
+        "text_encoder_name": "distilbert-base-multilingual-cased",
+        "image_encoder_name": "facebook/deit-base-patch16-224",
+        "checkpoint_path": "outputs/distilbert_deit/best_model.pth",
         "batch_size": 32,
     },
-    "lightweight": {
+    # DistilBERT + TinyViT
+    "distilbert_tinyvit": {
         "model_class": LightWeightMMTD,
         "collator_class": LightweightCollator,
-        "checkpoint_path": "outputs/lightweight/best_model.pth",
+        "text_encoder_name": "distilbert-base-multilingual-cased",
+        "image_encoder_name": "WinKawaks/tinyvit-5m-224",
+        "checkpoint_path": "outputs/distilbert_tinyvit/best_model.pth",
         "batch_size": 32,
     },
-    "ultralight": {
-        "model_class": UltraLightMMTD,
+    # TinyBERT + DeiT
+    "tinybert_deit": {
+        "model_class": LightWeightMMTD,
         "collator_class": LightweightCollator,
-        "checkpoint_path": "outputs/ultralight/best_model.pth",
+        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
+        "image_encoder_name": "facebook/deit-base-patch16-224",
+        "checkpoint_path": "outputs/tinybert_deit/best_model.pth",
+        "batch_size": 32,
+    },
+    # TinyBERT + TinyViT
+    "tinybert_tinyvit": {
+        "model_class": LightWeightMMTD,
+        "collator_class": LightweightCollator,
+        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
+        "image_encoder_name": "WinKawaks/tinyvit-5m-224",
+        "checkpoint_path": "outputs/tinybert_tinyvit/best_model.pth",
+        "batch_size": 32,
+    },
+    # DistilBERT + TinyViT (다른 variant)
+    "distilbert_tinyvit_11m": {
+        "model_class": LightWeightMMTD,
+        "collator_class": LightweightCollator,
+        "text_encoder_name": "distilbert-base-multilingual-cased",
+        "image_encoder_name": "WinKawaks/tinyvit-11m-224",
+        "checkpoint_path": "outputs/distilbert_tinyvit_11m/best_model.pth",
+        "batch_size": 32,
+    },
+    # TinyBERT + TinyViT (다른 variant)
+    "tinybert_tinyvit_11m": {
+        "model_class": LightWeightMMTD,
+        "collator_class": LightweightCollator,
+        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
+        "image_encoder_name": "WinKawaks/tinyvit-11m-224",
+        "checkpoint_path": "outputs/tinybert_tinyvit_11m/best_model.pth",
+        "batch_size": 32,
+    },
+    # DistilBERT + DeiT (small)
+    "distilbert_deit_small": {
+        "model_class": LightWeightMMTD,
+        "collator_class": LightweightCollator,
+        "text_encoder_name": "distilbert-base-multilingual-cased",
+        "image_encoder_name": "facebook/deit-small-patch16-224",
+        "checkpoint_path": "outputs/distilbert_deit_small/best_model.pth",
+        "batch_size": 32,
+    },
+    # TinyBERT + DeiT (small)
+    "tinybert_deit_small": {
+        "model_class": LightWeightMMTD,
+        "collator_class": LightweightCollator,
+        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
+        "image_encoder_name": "facebook/deit-small-patch16-224",
+        "checkpoint_path": "outputs/tinybert_deit_small/best_model.pth",
         "batch_size": 32,
     },
 }
