@@ -7,7 +7,7 @@ from transformers import ViltModel, ViltConfig
 
 
 class MMTD(torch.nn.Module):
-    def __init__(self, bert_cfg=BertConfig(), beit_cfg=BeitConfig(), bert_pretrain_weight=None, beit_pretrain_weight=None):
+    def __init__(self, bert_cfg=BertConfig(), beit_cfg=BeitConfig(), bert_pretrain_weight=None, beit_pretrain_weight=None, device=None):
         super(MMTD, self).__init__()
         self.text_encoder = BertForSequenceClassification.from_pretrained(bert_pretrain_weight) if bert_pretrain_weight is not None else BertForSequenceClassification(bert_cfg)
         self.image_encoder = BeitForImageClassification.from_pretrained(beit_pretrain_weight) if beit_pretrain_weight is not None else BeitForImageClassification(beit_cfg)
@@ -21,22 +21,33 @@ class MMTD(torch.nn.Module):
         # self.dropout = torch.nn.Dropout(p=0.1)
         self.classifier = torch.nn.Linear(768, 2)
         self.num_labels = 2
-        self.device = torch.device("cuda" if torch.cuda.is_available() else 
+        if device is not None:
+            self.device = torch.device(device)
+        else:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else 
                                  "mps" if torch.backends.mps.is_available() else "cpu")
 
     def forward(self, input_ids, token_type_ids, attention_mask, pixel_values, labels=None):
+        # 입력 텐서들을 self.device로 강제 이동
+        input_ids = input_ids.to(self.device)
+        token_type_ids = token_type_ids.to(self.device)
+        attention_mask = attention_mask.to(self.device)
+        pixel_values = pixel_values.to(self.device)
         text_outputs = self.text_encoder(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         image_outputs = self.image_encoder(pixel_values=pixel_values)
         text_last_hidden_state = text_outputs.hidden_states[12]
         image_last_hidden_state = image_outputs.hidden_states[12]
-        text_last_hidden_state += torch.zeros(text_last_hidden_state.size()).to(self.device)
-        image_last_hidden_state += torch.ones(image_last_hidden_state.size()).to(self.device)
+        text_last_hidden_state = text_last_hidden_state.to(self.device)
+        image_last_hidden_state = image_last_hidden_state.to(self.device)
+        text_last_hidden_state += torch.zeros(text_last_hidden_state.size(), device=self.device)
+        image_last_hidden_state += torch.ones(image_last_hidden_state.size(), device=self.device)
         fuse_hidden_state = torch.cat([text_last_hidden_state, image_last_hidden_state], dim=1)
         outputs = self.multi_modality_transformer_layer(fuse_hidden_state)
         outputs = self.pooler(outputs[:, 0, :])
         logits = self.classifier(outputs)
         loss = None
         if labels is not None:
+            labels = labels.to(self.device)
             loss_fct = CrossEntropyLoss()
             loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
         return SequenceClassifierOutput(
