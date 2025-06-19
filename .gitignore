@@ -1,3 +1,5 @@
+*.pth
+*checkpoints/
 # Logs
 logs
 *.log
