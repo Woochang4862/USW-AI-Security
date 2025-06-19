@@ -375,16 +375,25 @@ class HybridMMTD(torch.nn.Module):
         
         print("BERT 인코더가 프리즈되었습니다. 이미지 인코더만 학습됩니다.")
     
-    def forward(self, input_ids, token_type_ids, attention_mask, pixel_values, labels=None):
+    def forward(self, input_ids, attention_mask, pixel_values, labels=None, token_type_ids=None):
         # 입력 텐서들을 디바이스로 이동
         input_ids = input_ids.to(self.device)
-        token_type_ids = token_type_ids.to(self.device)
         attention_mask = attention_mask.to(self.device)
         pixel_values = pixel_values.to(self.device)
+        if token_type_ids is not None:
+            token_type_ids = token_type_ids.to(self.device)
         
         # 텍스트 인코딩 (프리즈된 BERT)
+        text_kwargs = {
+            'input_ids': input_ids,
+            'attention_mask': attention_mask
+        }
+        # token_type_ids가 있고 모델이 지원하는 경우에만 추가
+        if token_type_ids is not None and hasattr(self.text_encoder, 'bert'):
+            text_kwargs['token_type_ids'] = token_type_ids
+        
         with torch.no_grad():
-            text_outputs = self.text_encoder(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+            text_outputs = self.text_encoder(**text_kwargs)
         
         # 이미지 인코딩 (학습 가능)
         image_outputs = self.image_encoder(pixel_values=pixel_values)
@@ -533,15 +542,24 @@ class HybridMMTDTextTrainable(torch.nn.Module):
         
         print("BEiT 인코더가 프리즈되었습니다. 텍스트 인코더만 학습됩니다.")
     
-    def forward(self, input_ids, token_type_ids, attention_mask, pixel_values, labels=None):
+    def forward(self, input_ids, attention_mask, pixel_values, labels=None, token_type_ids=None):
         # 입력 텐서들을 디바이스로 이동
         input_ids = input_ids.to(self.device)
-        token_type_ids = token_type_ids.to(self.device)
         attention_mask = attention_mask.to(self.device)
         pixel_values = pixel_values.to(self.device)
+        if token_type_ids is not None:
+            token_type_ids = token_type_ids.to(self.device)
         
         # 텍스트 인코딩 (학습 가능)
-        text_outputs = self.text_encoder(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        text_kwargs = {
+            'input_ids': input_ids,
+            'attention_mask': attention_mask
+        }
+        # token_type_ids가 있고 모델이 지원하는 경우에만 추가
+        if token_type_ids is not None and hasattr(self.text_encoder, 'bert'):
+            text_kwargs['token_type_ids'] = token_type_ids
+        
+        text_outputs = self.text_encoder(**text_kwargs)
         
         # 이미지 인코딩 (프리즈된 BEiT)
         with torch.no_grad():
