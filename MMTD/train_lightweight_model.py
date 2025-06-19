@@ -20,6 +20,7 @@ os.environ["TORCH_USE_CUDA_DSA"] = '1'
 # 경량화 모델 임포트
 from lightweight_models import LightWeightMMTD, UltraLightMMTD, GeneralizedMMTD
 from utils import MobileBertMobileViTCollator
+from models import PretrainedMMTD, HybridMMTD
 
 # TinyBERT는 transformers에서 'huawei-noah/TinyBERT_General_4L_312D' 등으로 사용
 from transformers import DeiTForImageClassification, ViTForImageClassification
@@ -51,14 +52,26 @@ class EmailDataset(Dataset):
 
 class DynamicCollator:
     def __init__(self, text_model_name, image_model_name):
+        # 텍스트 토크나이저 분기
         if "mobilebert" in text_model_name:
             self.tokenizer = MobileBertTokenizer.from_pretrained(text_model_name)
+        elif "tinybert" in text_model_name.lower():
+            self.tokenizer = AutoTokenizer.from_pretrained(text_model_name)
+        elif "bert" in text_model_name and "distil" not in text_model_name:
+            # BERT 기본 모델
+            self.tokenizer = AutoTokenizer.from_pretrained(text_model_name)
         else:
+            # DistilBERT 등 기타
             self.tokenizer = DistilBertTokenizerFast.from_pretrained(text_model_name)
+            
         # 이미지 프로세서 분기
         if "mobilevit" in image_model_name:
             self.feature_extractor = MobileViTImageProcessor.from_pretrained(image_model_name)
         elif "deit" in image_model_name:
+            self.feature_extractor = AutoImageProcessor.from_pretrained(image_model_name)
+        elif "beit" in image_model_name:
+            self.feature_extractor = AutoImageProcessor.from_pretrained(image_model_name)
+        elif "vit-tiny" in image_model_name:
             self.feature_extractor = AutoImageProcessor.from_pretrained(image_model_name)
         else:
             self.feature_extractor = ViTFeatureExtractor.from_pretrained(image_model_name)
@@ -239,7 +252,7 @@ def plot_training_history(history, save_path='lightweight_checkpoints'):
     plt.close()
 
 
-# 실험 config 정의 (MobileBERT, MobileViT 제외)
+# 실험 config 정의 (기존 경량화 모델 + 사전 훈련된 모델 조합)
 experiment_configs = {
     # MobileBert + MobileViT
     "mobilebert_mobilevit": {
@@ -296,6 +309,50 @@ experiment_configs = {
         "checkpoint_path": "outputs/tinybert_vit-tiny/best_model.pth",
         "batch_size": 32,
     },
+    
+    # === 사전 훈련된 BERT+BEIT 기반 조합들 ===
+    # BERT + BEIT (사전 훈련된 모델, 추론만 가능)
+    "bert_beit_pretrained": {
+        "model_class": PretrainedMMTD,
+        "collator_class": lambda: DynamicCollator("google-bert/bert-base-uncased", "microsoft/beit-base-patch16-224"),
+        "checkpoint_path": "outputs/bert_beit_pretrained/best_model.pth",
+        "batch_size": 32,
+        "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
+        "is_pretrained": True,  # 이미 훈련된 모델임을 표시
+    },
+    
+    # BERT + DeiT (사전 훈련된 BERT + 새로운 DeiT)
+    "bert_deit": {
+        "model_class": HybridMMTD,
+        "collator_class": lambda: DynamicCollator("google-bert/bert-base-uncased", "facebook/deit-base-patch16-224"),
+        "image_encoder_cls": AutoModelForImageClassification,
+        "image_encoder_name": "facebook/deit-base-patch16-224",
+        "checkpoint_path": "outputs/bert_deit/best_model.pth",
+        "batch_size": 32,
+        "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
+    },
+    
+    # BERT + MobileViT (사전 훈련된 BERT + 새로운 MobileViT)
+    "bert_mobilevit": {
+        "model_class": HybridMMTD,
+        "collator_class": lambda: DynamicCollator("google-bert/bert-base-uncased", "apple/mobilevit-small"),
+        "image_encoder_cls": MobileViTForImageClassification,
+        "image_encoder_name": "apple/mobilevit-small",
+        "checkpoint_path": "outputs/bert_mobilevit/best_model.pth",
+        "batch_size": 32,
+        "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
+    },
+    
+    # BERT + ViT-Tiny (사전 훈련된 BERT + 새로운 ViT-Tiny)
+    "bert_vit-tiny": {
+        "model_class": HybridMMTD,
+        "collator_class": lambda: DynamicCollator("google-bert/bert-base-uncased", "WinKawaks/vit-tiny-patch16-224"),
+        "image_encoder_cls": AutoModelForImageClassification,
+        "image_encoder_name": "WinKawaks/vit-tiny-patch16-224",
+        "checkpoint_path": "outputs/bert_vit-tiny/best_model.pth",
+        "batch_size": 32,
+        "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
+    },
 }
 
 
@@ -319,13 +376,34 @@ def train_single_fold(fold_num, experiment=None, model_type='lightweight',
         collator = config["collator_class"]()
         batch_size = config.get("batch_size", batch_size)
         
-        # GeneralizedMMTD 모델 생성
-        model = config["model_class"](
-            text_encoder_cls=config["text_encoder_cls"],
-            image_encoder_cls=config["image_encoder_cls"],
-            text_pretrain_weight=config["text_encoder_name"],
-            image_pretrain_weight=config["image_encoder_name"]
-        )
+        # 모델 생성 분기
+        if config["model_class"] == PretrainedMMTD:
+            # 사전 훈련된 BERT+BEIT 모델
+            model = config["model_class"](
+                checkpoint_path=config["pretrained_checkpoint"],
+                device=device
+            )
+            # 사전 훈련된 모델은 학습하지 않음
+            if config.get("is_pretrained", False):
+                print("사전 훈련된 모델입니다. 평가만 수행합니다.")
+                # 평가만 수행하고 리턴하는 로직을 여기에 추가할 수 있음
+        elif config["model_class"] == HybridMMTD:
+            # 하이브리드 모델 (사전 훈련된 BERT + 새로운 이미지 인코더)
+            model = config["model_class"](
+                pretrained_checkpoint_path=config["pretrained_checkpoint"],
+                image_encoder_cls=config["image_encoder_cls"],
+                image_pretrain_weight=config["image_encoder_name"],
+                device=device
+            )
+        else:
+            # GeneralizedMMTD 모델
+            model = config["model_class"](
+                text_encoder_cls=config["text_encoder_cls"],
+                image_encoder_cls=config["image_encoder_cls"],
+                text_pretrain_weight=config["text_encoder_name"],
+                image_pretrain_weight=config["image_encoder_name"]
+            )
+        
         model_name = f"{config['model_class'].__name__}_{experiment}"
         save_path = os.path.dirname(config["checkpoint_path"])
         checkpoint_path = config["checkpoint_path"]

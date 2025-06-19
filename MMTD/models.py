@@ -4,6 +4,7 @@ from torch.nn import CrossEntropyLoss
 import torch
 from transformers import CLIPModel, CLIPConfig
 from transformers import ViltModel, ViltConfig
+import os
 
 
 class MMTD(torch.nn.Module):
@@ -25,7 +26,7 @@ class MMTD(torch.nn.Module):
             self.device = torch.device(device)
         else:
             self.device = torch.device("cuda" if torch.cuda.is_available() else 
-                                 "mps" if torch.backends.mps.is_available() else "cpu")
+                                     "mps" if torch.backends.mps.is_available() else "cpu")
 
     def forward(self, input_ids, token_type_ids, attention_mask, pixel_values, labels=None):
         # 입력 텐서들을 self.device로 강제 이동
@@ -281,3 +282,166 @@ class MMA_MF(torch.nn.Module):
             hidden_states=None,
             attentions=None,
         )
+
+class PretrainedMMTD(torch.nn.Module):
+    """사전 훈련된 BERT-BEIT MMTD 모델을 불러오는 클래스"""
+    def __init__(self, checkpoint_path="checkpoints/fold5/checkpoint-939/pytorch_model.bin", device=None):
+        super(PretrainedMMTD, self).__init__()
+        
+        # 기존 MMTD 모델 구조로 초기화
+        self.mmtd = MMTD(
+            bert_pretrain_weight="google-bert/bert-base-uncased",
+            beit_pretrain_weight="microsoft/beit-base-patch16-224",
+            device=device
+        )
+        
+        # 사전 훈련된 가중치 로드
+        if os.path.exists(checkpoint_path):
+            state_dict = torch.load(checkpoint_path, map_location='cpu')
+            self.mmtd.load_state_dict(state_dict)
+            print(f"사전 훈련된 모델 로드 완료: {checkpoint_path}")
+        else:
+            print(f"경고: 체크포인트 파일을 찾을 수 없습니다: {checkpoint_path}")
+        
+        # BERT와 BEIT 인코더를 프리즈
+        for param in self.mmtd.text_encoder.parameters():
+            param.requires_grad = False
+        for param in self.mmtd.image_encoder.parameters():
+            param.requires_grad = False
+            
+        print("BERT와 BEIT 인코더가 프리즈되었습니다.")
+        
+        self.device = device if device else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+    def forward(self, input_ids, token_type_ids, attention_mask, pixel_values, labels=None):
+        return self.mmtd(input_ids, token_type_ids, attention_mask, pixel_values, labels)
+    
+    def get_model_size(self):
+        """모델 크기 정보 반환"""
+        total_params = sum(p.numel() for p in self.parameters())
+        trainable_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
+        frozen_params = total_params - trainable_params
+        
+        return {
+            'total_parameters': total_params,
+            'trainable_parameters': trainable_params,
+            'frozen_parameters': frozen_params,
+            'total_size_mb': total_params * 4 / (1024 * 1024),  # float32 기준
+            'trainable_size_mb': trainable_params * 4 / (1024 * 1024)
+        }
+
+
+class HybridMMTD(torch.nn.Module):
+    """사전 훈련된 BERT와 새로운 이미지 인코더를 결합한 하이브리드 모델"""
+    def __init__(self, pretrained_checkpoint_path="checkpoints/fold5/checkpoint-939/pytorch_model.bin",
+                 image_encoder_cls=None, image_pretrain_weight=None, device=None):
+        super(HybridMMTD, self).__init__()
+        
+        # 사전 훈련된 MMTD에서 BERT 부분만 추출
+        pretrained_mmtd = MMTD(
+            bert_pretrain_weight="google-bert/bert-base-uncased",
+            beit_pretrain_weight="microsoft/beit-base-patch16-224",
+            device=device
+        )
+        
+        if os.path.exists(pretrained_checkpoint_path):
+            state_dict = torch.load(pretrained_checkpoint_path, map_location='cpu')
+            pretrained_mmtd.load_state_dict(state_dict)
+            print(f"사전 훈련된 모델 로드 완료: {pretrained_checkpoint_path}")
+        
+        # 사전 훈련된 BERT 인코더 사용 (프리즈)
+        self.text_encoder = pretrained_mmtd.text_encoder
+        for param in self.text_encoder.parameters():
+            param.requires_grad = False
+        
+        # 새로운 이미지 인코더 초기화
+        if image_encoder_cls and image_pretrain_weight:
+            self.image_encoder = image_encoder_cls.from_pretrained(image_pretrain_weight)
+            if hasattr(self.image_encoder, 'config'):
+                self.image_encoder.config.output_hidden_states = True
+        else:
+            raise ValueError("image_encoder_cls와 image_pretrain_weight를 제공해야 합니다.")
+        
+        # 멀티모달 레이어들
+        self.multi_modality_transformer_layer = torch.nn.TransformerEncoderLayer(d_model=768, nhead=8, batch_first=True)
+        self.pooler = torch.nn.Sequential(
+            torch.nn.Linear(768, 768),
+            torch.nn.Tanh()
+        )
+        self.classifier = torch.nn.Linear(768, 2)
+        self.num_labels = 2
+        
+        self.device = device if device else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        print("BERT 인코더가 프리즈되었습니다. 이미지 인코더만 학습됩니다.")
+    
+    def forward(self, input_ids, token_type_ids, attention_mask, pixel_values, labels=None):
+        # 입력 텐서들을 디바이스로 이동
+        input_ids = input_ids.to(self.device)
+        token_type_ids = token_type_ids.to(self.device)
+        attention_mask = attention_mask.to(self.device)
+        pixel_values = pixel_values.to(self.device)
+        
+        # 텍스트 인코딩 (프리즈된 BERT)
+        with torch.no_grad():
+            text_outputs = self.text_encoder(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        
+        # 이미지 인코딩 (학습 가능)
+        image_outputs = self.image_encoder(pixel_values=pixel_values)
+        
+        # 히든 스테이트 추출
+        text_last_hidden_state = text_outputs.hidden_states[12]
+        if hasattr(image_outputs, 'hidden_states') and image_outputs.hidden_states:
+            image_last_hidden_state = image_outputs.hidden_states[-1]
+        else:
+            # hidden_states가 없는 경우 pooler_output 또는 last_hidden_state 사용
+            if hasattr(image_outputs, 'pooler_output'):
+                image_last_hidden_state = image_outputs.pooler_output.unsqueeze(1)
+            elif hasattr(image_outputs, 'last_hidden_state'):
+                image_last_hidden_state = image_outputs.last_hidden_state
+            else:
+                # 마지막 수단으로 logits을 사용하여 차원 맞춤
+                logits = image_outputs.logits
+                batch_size = logits.shape[0]
+                image_last_hidden_state = torch.zeros(batch_size, text_last_hidden_state.shape[1], 768, device=self.device)
+        
+        # 차원 맞춤
+        text_last_hidden_state = text_last_hidden_state.to(self.device)
+        image_last_hidden_state = image_last_hidden_state.to(self.device)
+        
+        # 위치 임베딩 추가
+        text_last_hidden_state += torch.zeros(text_last_hidden_state.size(), device=self.device)
+        image_last_hidden_state += torch.ones(image_last_hidden_state.size(), device=self.device)
+        
+        # 멀티모달 융합
+        fuse_hidden_state = torch.cat([text_last_hidden_state, image_last_hidden_state], dim=1)
+        outputs = self.multi_modality_transformer_layer(fuse_hidden_state)
+        outputs = self.pooler(outputs[:, 0, :])
+        logits = self.classifier(outputs)
+        
+        loss = None
+        if labels is not None:
+            labels = labels.to(self.device)
+            loss_fct = CrossEntropyLoss()
+            loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+        
+        return SequenceClassifierOutput(
+            loss=loss,
+            logits=logits,
+            hidden_states=None,
+            attentions=None,
+        )
+    
+    def get_model_size(self):
+        """모델 크기 정보 반환"""
+        total_params = sum(p.numel() for p in self.parameters())
+        trainable_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
+        frozen_params = total_params - trainable_params
+        
+        return {
+            'total_parameters': total_params,
+            'trainable_parameters': trainable_params,
+            'frozen_parameters': frozen_params,
+            'total_size_mb': total_params * 4 / (1024 * 1024),
+            'trainable_size_mb': trainable_params * 4 / (1024 * 1024)
+        }
