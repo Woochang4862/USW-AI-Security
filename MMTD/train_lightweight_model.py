@@ -20,7 +20,7 @@ os.environ["TORCH_USE_CUDA_DSA"] = '1'
 # 경량화 모델 임포트
 from lightweight_models import LightWeightMMTD, UltraLightMMTD, GeneralizedMMTD
 from utils import MobileBertMobileViTCollator
-from models import PretrainedMMTD, HybridMMTD
+from models import PretrainedMMTD, HybridMMTD, HybridMMTDTextTrainable
 
 # TinyBERT는 transformers에서 'huawei-noah/TinyBERT_General_4L_312D' 등으로 사용
 from transformers import DeiTForImageClassification, ViTForImageClassification
@@ -353,6 +353,40 @@ experiment_configs = {
         "batch_size": 32,
         "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
     },
+    
+    # === BEiT 고정 + 텍스트 인코더 학습 조합들 ===
+    # MobileBERT + BEiT (사전 훈련된 BEiT + 새로운 MobileBERT)
+    "mobilebert_beit": {
+        "model_class": HybridMMTDTextTrainable,
+        "collator_class": lambda: DynamicCollator("google/mobilebert-uncased", "microsoft/beit-base-patch16-224"),
+        "text_encoder_cls": MobileBertForSequenceClassification,
+        "text_encoder_name": "google/mobilebert-uncased",
+        "checkpoint_path": "outputs/mobilebert_beit/best_model.pth",
+        "batch_size": 32,
+        "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
+    },
+    
+    # DistilBERT + BEiT (사전 훈련된 BEiT + 새로운 DistilBERT)
+    "distilbert_beit": {
+        "model_class": HybridMMTDTextTrainable,
+        "collator_class": lambda: DynamicCollator("distilbert-base-multilingual-cased", "microsoft/beit-base-patch16-224"),
+        "text_encoder_cls": DistilBertForSequenceClassification,
+        "text_encoder_name": "distilbert-base-multilingual-cased",
+        "checkpoint_path": "outputs/distilbert_beit/best_model.pth",
+        "batch_size": 32,
+        "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
+    },
+    
+    # TinyBERT + BEiT (사전 훈련된 BEiT + 새로운 TinyBERT)
+    "tinybert_beit": {
+        "model_class": HybridMMTDTextTrainable,
+        "collator_class": lambda: DynamicCollator("huawei-noah/TinyBERT_General_4L_312D", "microsoft/beit-base-patch16-224"),
+        "text_encoder_cls": AutoModelForSequenceClassification,
+        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
+        "checkpoint_path": "outputs/tinybert_beit/best_model.pth",
+        "batch_size": 32,
+        "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
+    },
 }
 
 
@@ -393,6 +427,14 @@ def train_single_fold(fold_num, experiment=None, model_type='lightweight',
                 pretrained_checkpoint_path=config["pretrained_checkpoint"],
                 image_encoder_cls=config["image_encoder_cls"],
                 image_pretrain_weight=config["image_encoder_name"],
+                device=device
+            )
+        elif config["model_class"] == HybridMMTDTextTrainable:
+            # 하이브리드 모델 (사전 훈련된 BEiT + 새로운 텍스트 인코더)
+            model = config["model_class"](
+                pretrained_checkpoint_path=config["pretrained_checkpoint"],
+                text_encoder_cls=config["text_encoder_cls"],
+                text_pretrain_weight=config["text_encoder_name"],
                 device=device
             )
         else:

@@ -445,3 +445,119 @@ class HybridMMTD(torch.nn.Module):
             'total_size_mb': total_params * 4 / (1024 * 1024),
             'trainable_size_mb': trainable_params * 4 / (1024 * 1024)
         }
+
+class HybridMMTDTextTrainable(torch.nn.Module):
+    """사전 훈련된 BEiT와 새로운 텍스트 인코더를 결합한 하이브리드 모델 (텍스트 인코더만 학습)"""
+    def __init__(self, pretrained_checkpoint_path="checkpoints/fold5/checkpoint-939/pytorch_model.bin",
+                 text_encoder_cls=None, text_pretrain_weight=None, device=None):
+        super(HybridMMTDTextTrainable, self).__init__()
+        
+        # 사전 훈련된 MMTD에서 BEiT 부분만 추출
+        pretrained_mmtd = MMTD(
+            bert_pretrain_weight="google-bert/bert-base-uncased",
+            beit_pretrain_weight="microsoft/beit-base-patch16-224",
+            device=device
+        )
+        
+        if os.path.exists(pretrained_checkpoint_path):
+            state_dict = torch.load(pretrained_checkpoint_path, map_location='cpu')
+            pretrained_mmtd.load_state_dict(state_dict)
+            print(f"사전 훈련된 모델 로드 완료: {pretrained_checkpoint_path}")
+        
+        # 사전 훈련된 BEiT 인코더 사용 (프리즈)
+        self.image_encoder = pretrained_mmtd.image_encoder
+        for param in self.image_encoder.parameters():
+            param.requires_grad = False
+        
+        # 새로운 텍스트 인코더 초기화
+        if text_encoder_cls and text_pretrain_weight:
+            self.text_encoder = text_encoder_cls.from_pretrained(text_pretrain_weight)
+            if hasattr(self.text_encoder, 'config'):
+                self.text_encoder.config.output_hidden_states = True
+        else:
+            raise ValueError("text_encoder_cls와 text_pretrain_weight를 제공해야 합니다.")
+        
+        # 멀티모달 레이어들
+        self.multi_modality_transformer_layer = torch.nn.TransformerEncoderLayer(d_model=768, nhead=8, batch_first=True)
+        self.pooler = torch.nn.Sequential(
+            torch.nn.Linear(768, 768),
+            torch.nn.Tanh()
+        )
+        self.classifier = torch.nn.Linear(768, 2)
+        self.num_labels = 2
+        
+        self.device = device if device else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        print("BEiT 인코더가 프리즈되었습니다. 텍스트 인코더만 학습됩니다.")
+    
+    def forward(self, input_ids, token_type_ids, attention_mask, pixel_values, labels=None):
+        # 입력 텐서들을 디바이스로 이동
+        input_ids = input_ids.to(self.device)
+        token_type_ids = token_type_ids.to(self.device)
+        attention_mask = attention_mask.to(self.device)
+        pixel_values = pixel_values.to(self.device)
+        
+        # 텍스트 인코딩 (학습 가능)
+        text_outputs = self.text_encoder(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        
+        # 이미지 인코딩 (프리즈된 BEiT)
+        with torch.no_grad():
+            image_outputs = self.image_encoder(pixel_values=pixel_values)
+        
+        # 히든 스테이트 추출
+        if hasattr(text_outputs, 'hidden_states') and text_outputs.hidden_states:
+            text_last_hidden_state = text_outputs.hidden_states[-1]
+        else:
+            # hidden_states가 없는 경우 처리
+            if hasattr(text_outputs, 'pooler_output'):
+                text_last_hidden_state = text_outputs.pooler_output.unsqueeze(1)
+            elif hasattr(text_outputs, 'last_hidden_state'):
+                text_last_hidden_state = text_outputs.last_hidden_state
+            else:
+                # 마지막 수단으로 logits을 사용하여 차원 맞춤
+                logits = text_outputs.logits
+                batch_size = logits.shape[0]
+                text_last_hidden_state = torch.zeros(batch_size, 197, 768, device=self.device)  # BEiT와 맞춤
+        
+        image_last_hidden_state = image_outputs.hidden_states[12]
+        
+        # 차원 맞춤
+        text_last_hidden_state = text_last_hidden_state.to(self.device)
+        image_last_hidden_state = image_last_hidden_state.to(self.device)
+        
+        # 위치 임베딩 추가
+        text_last_hidden_state += torch.zeros(text_last_hidden_state.size(), device=self.device)
+        image_last_hidden_state += torch.ones(image_last_hidden_state.size(), device=self.device)
+        
+        # 멀티모달 융합
+        fuse_hidden_state = torch.cat([text_last_hidden_state, image_last_hidden_state], dim=1)
+        outputs = self.multi_modality_transformer_layer(fuse_hidden_state)
+        outputs = self.pooler(outputs[:, 0, :])
+        logits = self.classifier(outputs)
+        
+        loss = None
+        if labels is not None:
+            labels = labels.to(self.device)
+            loss_fct = CrossEntropyLoss()
+            loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+        
+        return SequenceClassifierOutput(
+            loss=loss,
+            logits=logits,
+            hidden_states=None,
+            attentions=None,
+        )
+    
+    def get_model_size(self):
+        """모델 크기 정보 반환"""
+        total_params = sum(p.numel() for p in self.parameters())
+        trainable_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
+        frozen_params = total_params - trainable_params
+        
+        return {
+            'total_parameters': total_params,
+            'trainable_parameters': trainable_params,
+            'frozen_parameters': frozen_params,
+            'total_size_mb': total_params * 4 / (1024 * 1024),
+            'trainable_size_mb': trainable_params * 4 / (1024 * 1024)
+        }
