@@ -285,6 +285,17 @@ experiment_configs = {
         "checkpoint_path": "outputs/distilbert_deit/best_model.pth",
         "batch_size": 32,
     },
+    # TinyBERT + ViT-Tiny
+    "tinybert_vit-tiny": {
+        "model_class": GeneralizedMMTD,
+        "collator_class": lambda: DynamicCollator("huawei-noah/TinyBERT_General_4L_312D", "WinKawaks/vit-tiny-patch16-224"),
+        "text_encoder_cls": AutoModelForSequenceClassification,
+        "image_encoder_cls": AutoModelForImageClassification,
+        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
+        "image_encoder_name": "WinKawaks/vit-tiny-patch16-224",
+        "checkpoint_path": "outputs/tinybert_vit-tiny/best_model.pth",
+        "batch_size": 32,
+    },
 }
 
 
@@ -319,12 +330,7 @@ def train_single_fold(fold_num, experiment=None, model_type='lightweight',
         save_path = os.path.dirname(config["checkpoint_path"])
         checkpoint_path = config["checkpoint_path"]
     else:
-        # 기존 방식
-        collator = DynamicCollator("distilbert-base-multilingual-cased", "facebook/deit-base-patch16-224")
-        model = LightWeightMMTD() if model_type == 'lightweight' else UltraLightMMTD()
-        model_name = model.__class__.__name__
-        save_path = f'lightweight_checkpoints/{model_name.lower()}_fold{fold_num}'
-        checkpoint_path = os.path.join(save_path, 'best_model.pth')
+        raise ValueError(f"Invalid experiment: {experiment}")
 
     train_dataloader = DataLoader(
         train_dataset,
