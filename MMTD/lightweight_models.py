@@ -69,7 +69,7 @@ class LightWeightMMTD(torch.nn.Module):
             # (batch, channels, height, width) → (batch, channels)
             image_vec = image_last_hidden_state.mean(dim=[2, 3])
         elif image_last_hidden_state.ndim == 3:
-            image_vec = image_last_hidden_state[:, 0, :]
+        image_vec = image_last_hidden_state[:, 0, :]
         elif image_last_hidden_state.ndim == 2:
             image_vec = image_last_hidden_state
         else:
