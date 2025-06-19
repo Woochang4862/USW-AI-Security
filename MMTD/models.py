@@ -337,20 +337,42 @@ class HybridMMTD(torch.nn.Module):
                  image_encoder_cls=None, image_pretrain_weight=None, device=None):
         super(HybridMMTD, self).__init__()
         
-        # 사전 훈련된 MMTD에서 BERT 부분만 추출
-        pretrained_mmtd = MMTD(
-            bert_pretrain_weight="google-bert/bert-base-uncased",
-            beit_pretrain_weight="microsoft/beit-base-patch16-224",
-            device=device
-        )
+        self.device = device if device else torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
+        # 사전 훈련된 BERT 인코더 초기화 (기본 구조로)
+        from transformers import BertForSequenceClassification
+        self.text_encoder = BertForSequenceClassification.from_pretrained("google-bert/bert-base-uncased")
+        self.text_encoder.config.output_hidden_states = True
+        
+        # 사전 훈련된 가중치에서 BERT 부분만 로드
         if os.path.exists(pretrained_checkpoint_path):
-            state_dict = torch.load(pretrained_checkpoint_path, map_location='cpu')
-            pretrained_mmtd.load_state_dict(state_dict)
-            print(f"사전 훈련된 모델 로드 완료: {pretrained_checkpoint_path}")
+            try:
+                state_dict = torch.load(pretrained_checkpoint_path, map_location='cpu')
+                
+                # BERT 관련 가중치만 추출
+                bert_state_dict = {}
+                for key, value in state_dict.items():
+                    if key.startswith("text_encoder."):
+                        # 키에서 "text_encoder." 제거
+                        new_key = key.replace("text_encoder.", "")
+                        bert_state_dict[new_key] = value
+                
+                # BERT 모델에 가중치 로드 (strict=False로 설정하여 일부 키가 없어도 무시)
+                missing_keys, unexpected_keys = self.text_encoder.load_state_dict(bert_state_dict, strict=False)
+                print(f"사전 훈련된 BERT 가중치 로드 완료: {pretrained_checkpoint_path}")
+                if missing_keys:
+                    print(f"누락된 키 수: {len(missing_keys)}")
+                if unexpected_keys:
+                    print(f"예상치 못한 키 수: {len(unexpected_keys)}")
+                    
+            except Exception as e:
+                print(f"체크포인트 로딩 중 오류 발생: {e}")
+                print("기본 사전 훈련된 BERT 모델을 사용합니다.")
+        else:
+            print(f"경고: 체크포인트 파일을 찾을 수 없습니다: {pretrained_checkpoint_path}")
+            print("기본 사전 훈련된 BERT 모델을 사용합니다.")
         
-        # 사전 훈련된 BERT 인코더 사용 (프리즈)
-        self.text_encoder = pretrained_mmtd.text_encoder
+        # BERT 인코더를 프리즈
         for param in self.text_encoder.parameters():
             param.requires_grad = False
         
@@ -370,8 +392,6 @@ class HybridMMTD(torch.nn.Module):
         )
         self.classifier = torch.nn.Linear(768, 2)
         self.num_labels = 2
-        
-        self.device = device if device else torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         print("BERT 인코더가 프리즈되었습니다. 이미지 인코더만 학습됩니다.")
     
@@ -399,35 +419,39 @@ class HybridMMTD(torch.nn.Module):
         image_outputs = self.image_encoder(pixel_values=pixel_values)
         
         # 히든 스테이트 추출
-        text_last_hidden_state = text_outputs.hidden_states[12]
+        if hasattr(text_outputs, 'hidden_states') and text_outputs.hidden_states:
+            text_last_hidden_state = text_outputs.hidden_states[-1]
+        else:
+            # hidden_states가 없는 경우 처리
+            if hasattr(text_outputs, 'pooler_output'):
+                text_last_hidden_state = text_outputs.pooler_output.unsqueeze(1)
+                # 이미지 인코더와 시퀀스 길이 맞춤
+                if hasattr(image_outputs, 'hidden_states') and image_outputs.hidden_states:
+                    target_seq_len = image_outputs.hidden_states[-1].shape[1]
+                    text_last_hidden_state = text_last_hidden_state.repeat(1, target_seq_len, 1)
+                else:
+                    text_last_hidden_state = text_last_hidden_state.repeat(1, 197, 1)  # BEiT 기본값
+            elif hasattr(text_outputs, 'last_hidden_state'):
+                text_last_hidden_state = text_outputs.last_hidden_state
+            else:
+                # 마지막 수단
+                batch_size = input_ids.shape[0]
+                text_last_hidden_state = torch.zeros(batch_size, 197, 768, device=self.device)
+        
+        # BEiT의 hidden_states 추출
         if hasattr(image_outputs, 'hidden_states') and image_outputs.hidden_states:
             image_last_hidden_state = image_outputs.hidden_states[-1]
         else:
-            # hidden_states가 없는 경우 pooler_output 또는 last_hidden_state 사용
-            if hasattr(image_outputs, 'pooler_output'):
-                image_last_hidden_state = image_outputs.pooler_output.unsqueeze(1)
-            elif hasattr(image_outputs, 'last_hidden_state'):
+            # fallback: last_hidden_state 사용
+            if hasattr(image_outputs, 'last_hidden_state'):
                 image_last_hidden_state = image_outputs.last_hidden_state
             else:
-                # 마지막 수단으로 logits을 사용하여 차원 맞춤
-                logits = image_outputs.logits
-                batch_size = logits.shape[0]
-                image_last_hidden_state = torch.zeros(batch_size, text_last_hidden_state.shape[1], 768, device=self.device)
+                batch_size = pixel_values.shape[0]
+                image_last_hidden_state = torch.zeros(batch_size, 197, 768, device=self.device)
         
         # 차원 맞춤
         text_last_hidden_state = text_last_hidden_state.to(self.device)
         image_last_hidden_state = image_last_hidden_state.to(self.device)
-        
-        # 텍스트 hidden_state의 차원을 768로 맞춤
-        if hasattr(self.text_encoder.config, 'hidden_size'):
-            text_hidden_size = self.text_encoder.config.hidden_size
-            if text_hidden_size != 768:
-                self.text_projection = torch.nn.Linear(text_hidden_size, 768)
-                print(f"텍스트 projection layer 추가: {text_hidden_size} -> 768")
-            else:
-                self.text_projection = None
-        else:
-            self.text_projection = None
         
         # 위치 임베딩 추가
         text_last_hidden_state += torch.zeros(text_last_hidden_state.size(), device=self.device)
@@ -572,16 +596,16 @@ class HybridMMTDTextTrainable(torch.nn.Module):
             # hidden_states가 없는 경우 처리
             if hasattr(text_outputs, 'pooler_output'):
                 text_last_hidden_state = text_outputs.pooler_output.unsqueeze(1)
-                # BEiT와 시퀀스 길이 맞춤 (197개 토큰)
-                text_last_hidden_state = text_last_hidden_state.repeat(1, 197, 1)
+                # 이미지 인코더와 시퀀스 길이 맞춤
+                if hasattr(image_outputs, 'hidden_states') and image_outputs.hidden_states:
+                    target_seq_len = image_outputs.hidden_states[-1].shape[1]
+                    text_last_hidden_state = text_last_hidden_state.repeat(1, target_seq_len, 1)
+                else:
+                    text_last_hidden_state = text_last_hidden_state.repeat(1, 197, 1)  # BEiT 기본값
             elif hasattr(text_outputs, 'last_hidden_state'):
                 text_last_hidden_state = text_outputs.last_hidden_state
-                # 시퀀스 길이 조정
-                if text_last_hidden_state.shape[1] != 197:
-                    batch_size = text_last_hidden_state.shape[0]
-                    text_last_hidden_state = torch.zeros(batch_size, 197, 768, device=self.device)
             else:
-                # 마지막 수단으로 logits을 사용하여 차원 맞춤
+                # 마지막 수단
                 batch_size = input_ids.shape[0]
                 text_last_hidden_state = torch.zeros(batch_size, 197, 768, device=self.device)
         
@@ -599,13 +623,6 @@ class HybridMMTDTextTrainable(torch.nn.Module):
         # 차원 맞춤
         text_last_hidden_state = text_last_hidden_state.to(self.device)
         image_last_hidden_state = image_last_hidden_state.to(self.device)
-        
-        # 텍스트 hidden_state의 차원을 768로 맞춤
-        if self.text_projection is not None:
-            original_shape = text_last_hidden_state.shape
-            text_last_hidden_state = text_last_hidden_state.view(-1, original_shape[-1])  # (batch*seq, hidden)
-            text_last_hidden_state = self.text_projection(text_last_hidden_state)  # (batch*seq, 768)
-            text_last_hidden_state = text_last_hidden_state.view(original_shape[0], original_shape[1], 768)  # (batch, seq, 768)
         
         # 위치 임베딩 추가
         text_last_hidden_state += torch.zeros(text_last_hidden_state.size(), device=self.device)
