@@ -1,5 +1,8 @@
 *.pth
+<<<<<<< HEAD
 *checkpoints/
+=======
+>>>>>>> 3d607fe (back up2)
 # Logs
 logs
 *.log

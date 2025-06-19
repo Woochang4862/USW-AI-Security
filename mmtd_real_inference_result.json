@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "device": "cuda",
+=======
+  "device": "cpu",
+>>>>>>> 3d607fe (back up2)
   "num_samples": 4,
   "input_texts": [
     "Copy DVD Movies?\n\nYes! Copy and burn your own DVD movies and video with a CD-R Drive.\n\n* Order by September 21, 2002, and receive the following Free Gifts! 1. \"Free DVD Movie of your choice ($20.00 Value) 2. Cell Phone Battery Booster ($19.95 Value) Own all the DVD's you've always wanted and start burning today! .\n\nClick Here Now!\n",
@@ -29,6 +33,7 @@
   ],
   "predictions": [
     [
+<<<<<<< HEAD
       0.013607067987322807,
       0.9863929152488708
     ],
@@ -43,6 +48,22 @@
     [
       0.00828105304390192,
       0.9917188882827759
+=======
+      0.013606914319097996,
+      0.9863930344581604
+    ],
+    [
+      0.00841858796775341,
+      0.991581380367279
+    ],
+    [
+      0.922448456287384,
+      0.07755148410797119
+    ],
+    [
+      0.008281280286610126,
+      0.9917186498641968
+>>>>>>> 3d607fe (back up2)
     ]
   ],
   "pred_labels": [
@@ -58,8 +79,14 @@
     "spam"
   ],
   "performance": {
+<<<<<<< HEAD
     "execution_time": 1.2965729236602783,
     "memory_used_gb": -0.003398895263671875,
     "peak_memory_gb": 3.5785484313964844
+=======
+    "execution_time": 1.3427119255065918,
+    "memory_used_gb": -0.0550384521484375,
+    "peak_memory_gb": 11.34808349609375
+>>>>>>> 3d607fe (back up2)
   }
 }

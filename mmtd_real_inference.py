@@ -55,6 +55,7 @@ def main():
     parser = argparse.ArgumentParser(description="MMTD 실제 데이터 실험")
     parser.add_argument('--input', type=str, required=True, help='입력 JSON 파일 경로')
     parser.add_argument('--output', type=str, default='mmtd_real_inference_result.json', help='결과 저장 파일')
+    parser.add_argument('--device', type=str, default='auto', choices=['auto', 'cpu', 'cuda', 'mps'], help='실행 디바이스(cpu/cuda/mps/auto)')
     args = parser.parse_args()
 
     # 입력 데이터 로드
@@ -64,11 +65,21 @@ def main():
     images = load_images(image_paths)
 
     # 디바이스 설정
-    if torch.cuda.is_available():
+    if args.device == 'cpu':
+        device = torch.device('cpu')
+    elif args.device == 'cuda' and torch.cuda.is_available():
         device = torch.device('cuda')
-    elif torch.backends.mps.is_available():
+    elif args.device == 'mps' and torch.backends.mps.is_available():
         device = torch.device('mps')
+    elif args.device == 'auto':
+        if torch.cuda.is_available():
+            device = torch.device('cuda')
+        elif torch.backends.mps.is_available():
+            device = torch.device('mps')
+        else:
+            device = torch.device('cpu')
     else:
+        print(f"[ERROR] 선택한 디바이스({args.device})를 사용할 수 없습니다. CPU로 대체합니다.")
         device = torch.device('cpu')
     print(f"[INFO] 디바이스: {device}")
 
@@ -78,7 +89,8 @@ def main():
     beit_pretrain = 'microsoft/beit-base-patch16-224-pt22k'
     model = MMTD(
         bert_pretrain_weight=bert_pretrain,
-        beit_pretrain_weight=beit_pretrain
+        beit_pretrain_weight=beit_pretrain,
+        device=device
     )
     checkpoint_path = "MMTD/checkpoints/fold1/checkpoint-939/pytorch_model.bin"
     state_dict = torch.load(checkpoint_path, map_location=device)
