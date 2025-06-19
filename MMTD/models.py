@@ -349,19 +349,21 @@ class HybridMMTD(torch.nn.Module):
             try:
                 state_dict = torch.load(pretrained_checkpoint_path, map_location='cpu')
                 
-                # BERT 관련 가중치만 추출
+                # BERT 관련 가중치만 추출 (classifier 제외)
                 bert_state_dict = {}
                 for key, value in state_dict.items():
                     if key.startswith("text_encoder."):
                         # 키에서 "text_encoder." 제거
                         new_key = key.replace("text_encoder.", "")
-                        bert_state_dict[new_key] = value
+                        # classifier 레이어는 제외 (크기 불일치 방지)
+                        if not new_key.startswith("classifier."):
+                            bert_state_dict[new_key] = value
                 
                 # BERT 모델에 가중치 로드 (strict=False로 설정하여 일부 키가 없어도 무시)
                 missing_keys, unexpected_keys = self.text_encoder.load_state_dict(bert_state_dict, strict=False)
-                print(f"사전 훈련된 BERT 가중치 로드 완료: {pretrained_checkpoint_path}")
+                print(f"사전 훈련된 BERT 가중치 로드 완료 (classifier 제외): {pretrained_checkpoint_path}")
                 if missing_keys:
-                    print(f"누락된 키 수: {len(missing_keys)}")
+                    print(f"누락된 키 수: {len(missing_keys)} (classifier 포함)")
                 if unexpected_keys:
                     print(f"예상치 못한 키 수: {len(unexpected_keys)}")
                     
