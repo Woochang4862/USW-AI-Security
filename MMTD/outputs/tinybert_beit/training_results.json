@@ -1,0 +1,52 @@
+{
+  "fold": 1,
+  "model_type": "lightweight",
+  "model_name": "HybridMMTDTextTrainable_tinybert_beit",
+  "final_accuracy": 0.8458827298942646,
+  "final_loss": 0.34692367322134726,
+  "best_val_accuracy": 0.8458827298942646,
+  "classification_report": {
+    "ham": {
+      "precision": 0.8133792707436118,
+      "recall": 0.9007949125596184,
+      "f1-score": 0.8548581774290888,
+      "support": 3145.0
+    },
+    "spam": {
+      "precision": 0.8869155491119971,
+      "recall": 0.7901194704552793,
+      "f1-score": 0.835724043715847,
+      "support": 3097.0
+    },
+    "accuracy": 0.8458827298942646,
+    "macro avg": {
+      "precision": 0.8501474099278045,
+      "recall": 0.8454571915074489,
+      "f1-score": 0.8452911105724679,
+      "support": 6242.0
+    },
+    "weighted avg": {
+      "precision": 0.8498646687101111,
+      "recall": 0.8458827298942646,
+      "f1-score": 0.8453646798145565,
+      "support": 6242.0
+    }
+  },
+  "training_history": {
+    "train_losses": [
+      0.48170268108231157
+    ],
+    "val_accuracies": [
+      0.8458827298942646
+    ],
+    "val_losses": [
+      0.34692367322134726
+    ],
+    "best_val_accuracy": 0.8458827298942646
+  },
+  "hyperparameters": {
+    "num_epochs": 1,
+    "batch_size": 32,
+    "learning_rate": 2e-05
+  }
+}

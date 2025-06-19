@@ -1,0 +1,52 @@
+{
+  "fold": 1,
+  "model_type": "lightweight",
+  "model_name": "GeneralizedMMTD_tinybert_mobilevit",
+  "final_accuracy": 0.8111182313361103,
+  "final_loss": 0.450266784703245,
+  "best_val_accuracy": 0.8111182313361103,
+  "classification_report": {
+    "ham": {
+      "precision": 0.7497459349593496,
+      "recall": 0.9383147853736089,
+      "f1-score": 0.8334980934896201,
+      "support": 3145.0
+    },
+    "spam": {
+      "precision": 0.9158716392020815,
+      "recall": 0.681950274459154,
+      "f1-score": 0.781787895613548,
+      "support": 3097.0
+    },
+    "accuracy": 0.8111182313361103,
+    "macro avg": {
+      "precision": 0.8328087870807155,
+      "recall": 0.8101325299163815,
+      "f1-score": 0.8076429945515841,
+      "support": 6242.0
+    },
+    "weighted avg": {
+      "precision": 0.8321700467888499,
+      "recall": 0.8111182313361103,
+      "f1-score": 0.8078418162031422,
+      "support": 6242.0
+    }
+  },
+  "training_history": {
+    "train_losses": [
+      0.5263162071741497
+    ],
+    "val_accuracies": [
+      0.8111182313361103
+    ],
+    "val_losses": [
+      0.450266784703245
+    ],
+    "best_val_accuracy": 0.8111182313361103
+  },
+  "hyperparameters": {
+    "num_epochs": 1,
+    "batch_size": 32,
+    "learning_rate": 2e-05
+  }
+}
