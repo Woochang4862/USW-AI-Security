@@ -559,19 +559,21 @@ class HybridMMTDTextTrainable(torch.nn.Module):
             try:
                 state_dict = torch.load(pretrained_checkpoint_path, map_location='cpu')
                 
-                # BEiT 관련 가중치만 추출
+                # BEiT 관련 가중치만 추출 (classifier 제외)
                 beit_state_dict = {}
                 for key, value in state_dict.items():
                     if key.startswith("image_encoder."):
                         # 키에서 "image_encoder." 제거
                         new_key = key.replace("image_encoder.", "")
-                        beit_state_dict[new_key] = value
+                        # classifier 레이어는 제외 (크기 불일치 방지)
+                        if not new_key.startswith("classifier."):
+                            beit_state_dict[new_key] = value
                 
                 # BEiT 모델에 가중치 로드 (strict=False로 설정하여 일부 키가 없어도 무시)
                 missing_keys, unexpected_keys = self.image_encoder.load_state_dict(beit_state_dict, strict=False)
-                print(f"사전 훈련된 BEiT 가중치 로드 완료: {pretrained_checkpoint_path}")
+                print(f"사전 훈련된 BEiT 가중치 로드 완료 (classifier 제외): {pretrained_checkpoint_path}")
                 if missing_keys:
-                    print(f"누락된 키 수: {len(missing_keys)}")
+                    print(f"누락된 키 수: {len(missing_keys)} (classifier 포함)")
                 if unexpected_keys:
                     print(f"예상치 못한 키 수: {len(unexpected_keys)}")
                     
