@@ -1,0 +1,58 @@
+{
+  "fold": 5,
+  "model_type": "lightweight",
+  "model_name": "GeneralizedMMTD_distilbert_mobilevit",
+  "final_accuracy": 0.9098334401024984,
+  "final_loss": 0.20286638848483562,
+  "best_val_accuracy": 0.9098334401024984,
+  "classification_report": {
+    "ham": {
+      "precision": 0.8572211564812278,
+      "recall": 0.9867507886435332,
+      "f1-score": 0.9174365742777534,
+      "support": 3170.0
+    },
+    "spam": {
+      "precision": 0.9838150289017341,
+      "recall": 0.8305139882888745,
+      "f1-score": 0.9006879520197566,
+      "support": 3074.0
+    },
+    "accuracy": 0.9098334401024984,
+    "macro avg": {
+      "precision": 0.9205180926914809,
+      "recall": 0.9086323884662038,
+      "f1-score": 0.909062263148755,
+      "support": 6244.0
+    },
+    "weighted avg": {
+      "precision": 0.9195449175031106,
+      "recall": 0.9098334401024984,
+      "f1-score": 0.9091910161705973,
+      "support": 6244.0
+    }
+  },
+  "training_history": {
+    "train_losses": [
+      0.3624067282287473,
+      0.22263885415355925,
+      0.19771900004140852
+    ],
+    "val_accuracies": [
+      0.9019859064702114,
+      0.9069506726457399,
+      0.9098334401024984
+    ],
+    "val_losses": [
+      0.25182427078181385,
+      0.2061890776896355,
+      0.20286638848483562
+    ],
+    "best_val_accuracy": 0.9098334401024984
+  },
+  "hyperparameters": {
+    "num_epochs": 3,
+    "batch_size": 32,
+    "learning_rate": 2e-05
+  }
+}

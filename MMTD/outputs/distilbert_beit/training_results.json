@@ -1,0 +1,58 @@
+{
+  "fold": 1,
+  "model_type": "lightweight",
+  "model_name": "HybridMMTDTextTrainable_distilbert_beit",
+  "final_accuracy": 0.9623518103172061,
+  "final_loss": 0.11773290358452905,
+  "best_val_accuracy": 0.9623518103172061,
+  "classification_report": {
+    "ham": {
+      "precision": 0.9578351164254248,
+      "recall": 0.967885532591415,
+      "f1-score": 0.9628340977384153,
+      "support": 3145.0
+    },
+    "spam": {
+      "precision": 0.9670365535248042,
+      "recall": 0.9567323216015499,
+      "f1-score": 0.9618568414218471,
+      "support": 3097.0
+    },
+    "accuracy": 0.9623518103172061,
+    "macro avg": {
+      "precision": 0.9624358349751145,
+      "recall": 0.9623089270964824,
+      "f1-score": 0.9623454695801312,
+      "support": 6242.0
+    },
+    "weighted avg": {
+      "precision": 0.9624004561717847,
+      "recall": 0.9623518103172061,
+      "f1-score": 0.9623492270539533,
+      "support": 6242.0
+    }
+  },
+  "training_history": {
+    "train_losses": [
+      0.3369343540537029,
+      0.16820341750750467,
+      0.1238593998563055
+    ],
+    "val_accuracies": [
+      0.9388016661326498,
+      0.9554629926305671,
+      0.9623518103172061
+    ],
+    "val_losses": [
+      0.17512102787173828,
+      0.13337501566572002,
+      0.11773290358452905
+    ],
+    "best_val_accuracy": 0.9623518103172061
+  },
+  "hyperparameters": {
+    "num_epochs": 3,
+    "batch_size": 32,
+    "learning_rate": 2e-05
+  }
+}
