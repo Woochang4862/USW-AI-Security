@@ -346,6 +346,18 @@ experiment_configs = {
         "batch_size": 32,
     },
     
+    # MobileBERT + ViT-Tiny
+    "mobilebert_vit-tiny": {
+        "model_class": GeneralizedMMTD,
+        "collator_class": lambda: DynamicCollator("google/mobilebert-uncased", "WinKawaks/vit-tiny-patch16-224"),
+        "text_encoder_cls": MobileBertForSequenceClassification,
+        "image_encoder_cls": AutoModelForImageClassification,
+        "text_encoder_name": "google/mobilebert-uncased",
+        "image_encoder_name": "WinKawaks/vit-tiny-patch16-224",
+        "checkpoint_path": "outputs/mobilebert_vit-tiny/best_model.pth",
+        "batch_size": 32,
+    },
+    
     # === 사전 훈련된 BERT+BEIT 기반 조합들 ===
     # BERT + BEIT (사전 훈련된 모델, 추론만 가능)
     "bert_beit_pretrained": {
