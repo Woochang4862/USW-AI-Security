@@ -586,9 +586,9 @@ class HybridMMTDTextTrainable(torch.nn.Module):
             print(f"경고: 체크포인트 파일을 찾을 수 없습니다: {pretrained_checkpoint_path}")
             print("기본 사전 훈련된 BEiT 모델을 사용합니다.")
         
-        # BEiT 인코더를 프리즈
-        for param in self.image_encoder.parameters():
-            param.requires_grad = False
+        # # BEiT 인코더를 프리즈
+        # for param in self.image_encoder.parameters():
+        #     param.requires_grad = False
         
         # 멀티모달 레이어들
         self.multi_modality_transformer_layer = torch.nn.TransformerEncoderLayer(d_model=768, nhead=8, batch_first=True)
