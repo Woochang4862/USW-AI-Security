@@ -418,19 +418,15 @@ class HybridMMTD(torch.nn.Module):
         # 이미지 인코딩 (학습 가능)
         image_outputs = self.image_encoder(pixel_values=pixel_values)
         
-        # 히든 스테이트 추출
+        # 텍스트 hidden states 추출
         if hasattr(text_outputs, 'hidden_states') and text_outputs.hidden_states:
             text_last_hidden_state = text_outputs.hidden_states[-1]
         else:
             # hidden_states가 없는 경우 처리
             if hasattr(text_outputs, 'pooler_output'):
                 text_last_hidden_state = text_outputs.pooler_output.unsqueeze(1)
-                # 이미지 인코더와 시퀀스 길이 맞춤
-                if hasattr(image_outputs, 'hidden_states') and image_outputs.hidden_states:
-                    target_seq_len = image_outputs.hidden_states[-1].shape[1]
-                    text_last_hidden_state = text_last_hidden_state.repeat(1, target_seq_len, 1)
-                else:
-                    text_last_hidden_state = text_last_hidden_state.repeat(1, 197, 1)  # BEiT 기본값
+                # 기본 시퀀스 길이 설정
+                text_last_hidden_state = text_last_hidden_state.repeat(1, 197, 1)  # BEiT 기본값
             elif hasattr(text_outputs, 'last_hidden_state'):
                 text_last_hidden_state = text_outputs.last_hidden_state
             else:
@@ -438,16 +434,49 @@ class HybridMMTD(torch.nn.Module):
                 batch_size = input_ids.shape[0]
                 text_last_hidden_state = torch.zeros(batch_size, 197, 768, device=self.device)
         
-        # BEiT의 hidden_states 추출
+        # 텍스트 projection 적용 (필요한 경우)
+        if hasattr(self, 'text_projection') and self.text_projection is not None:
+            text_last_hidden_state = self.text_projection(text_last_hidden_state)
+        
+        # 이미지 출력의 hidden_states 추출 및 차원 처리
         if hasattr(image_outputs, 'hidden_states') and image_outputs.hidden_states:
             image_last_hidden_state = image_outputs.hidden_states[-1]
+            # MobileViT 등은 4차원 출력 (batch, height, width, channels)이 나올 수 있음
+            if len(image_last_hidden_state.shape) == 4:
+                # 4차원을 3차원으로 변환: (batch, H*W, channels)
+                b, h, w, c = image_last_hidden_state.shape
+                image_last_hidden_state = image_last_hidden_state.view(b, h*w, c)
+                # 768 차원으로 맞춤
+                if c != 768:
+                    if not hasattr(self, 'image_projection'):
+                        self.image_projection = torch.nn.Linear(c, 768).to(self.device)
+                    image_last_hidden_state = self.image_projection(image_last_hidden_state)
+        elif hasattr(image_outputs, 'last_hidden_state'):
+            image_last_hidden_state = image_outputs.last_hidden_state
+            # 차원 확인 및 처리
+            if len(image_last_hidden_state.shape) == 4:
+                b, h, w, c = image_last_hidden_state.shape
+                image_last_hidden_state = image_last_hidden_state.view(b, h*w, c)
+                if c != 768:
+                    if not hasattr(self, 'image_projection'):
+                        self.image_projection = torch.nn.Linear(c, 768).to(self.device)
+                    image_last_hidden_state = self.image_projection(image_last_hidden_state)
+        elif hasattr(image_outputs, 'pooler_output'):
+            # pooler_output이 있는 경우 (보통 1차원)
+            image_last_hidden_state = image_outputs.pooler_output.unsqueeze(1)
+            # 텍스트와 시퀀스 길이 맞춤
+            text_seq_len = text_last_hidden_state.shape[1]
+            image_last_hidden_state = image_last_hidden_state.repeat(1, text_seq_len, 1)
+            # 768 차원으로 맞춤
+            if image_last_hidden_state.shape[-1] != 768:
+                if not hasattr(self, 'image_projection'):
+                    self.image_projection = torch.nn.Linear(image_last_hidden_state.shape[-1], 768).to(self.device)
+                image_last_hidden_state = self.image_projection(image_last_hidden_state)
         else:
-            # fallback: last_hidden_state 사용
-            if hasattr(image_outputs, 'last_hidden_state'):
-                image_last_hidden_state = image_outputs.last_hidden_state
-            else:
-                batch_size = pixel_values.shape[0]
-                image_last_hidden_state = torch.zeros(batch_size, 197, 768, device=self.device)
+            # 마지막 수단: 제로 텐서 생성
+            batch_size = pixel_values.shape[0]
+            text_seq_len = text_last_hidden_state.shape[1]
+            image_last_hidden_state = torch.zeros(batch_size, text_seq_len, 768, device=self.device)
         
         # 차원 맞춤
         text_last_hidden_state = text_last_hidden_state.to(self.device)
@@ -589,19 +618,15 @@ class HybridMMTDTextTrainable(torch.nn.Module):
         with torch.no_grad():
             image_outputs = self.image_encoder(pixel_values=pixel_values)
         
-        # 히든 스테이트 추출
+        # 텍스트 hidden states 추출
         if hasattr(text_outputs, 'hidden_states') and text_outputs.hidden_states:
             text_last_hidden_state = text_outputs.hidden_states[-1]
         else:
             # hidden_states가 없는 경우 처리
             if hasattr(text_outputs, 'pooler_output'):
                 text_last_hidden_state = text_outputs.pooler_output.unsqueeze(1)
-                # 이미지 인코더와 시퀀스 길이 맞춤
-                if hasattr(image_outputs, 'hidden_states') and image_outputs.hidden_states:
-                    target_seq_len = image_outputs.hidden_states[-1].shape[1]
-                    text_last_hidden_state = text_last_hidden_state.repeat(1, target_seq_len, 1)
-                else:
-                    text_last_hidden_state = text_last_hidden_state.repeat(1, 197, 1)  # BEiT 기본값
+                # 기본 시퀀스 길이 설정
+                text_last_hidden_state = text_last_hidden_state.repeat(1, 197, 1)  # BEiT 기본값
             elif hasattr(text_outputs, 'last_hidden_state'):
                 text_last_hidden_state = text_outputs.last_hidden_state
             else:
@@ -609,7 +634,11 @@ class HybridMMTDTextTrainable(torch.nn.Module):
                 batch_size = input_ids.shape[0]
                 text_last_hidden_state = torch.zeros(batch_size, 197, 768, device=self.device)
         
-        # BEiT의 hidden_states 추출
+        # 텍스트 projection 적용 (필요한 경우)
+        if hasattr(self, 'text_projection') and self.text_projection is not None:
+            text_last_hidden_state = self.text_projection(text_last_hidden_state)
+        
+        # 이미지 출력의 hidden_states 추출 및 차원 처리
         if hasattr(image_outputs, 'hidden_states') and image_outputs.hidden_states:
             image_last_hidden_state = image_outputs.hidden_states[-1]
         else:
