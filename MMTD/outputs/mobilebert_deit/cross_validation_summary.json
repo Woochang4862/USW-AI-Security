@@ -1,0 +1,23 @@
+{
+  "model_name": "MobileBert + DeiT",
+  "model_size_mb": 428.1,
+  "cross_validation_results": {
+    "mean_accuracy": 0.5073,
+    "std_accuracy": 0.012,
+    "min_accuracy": 0.4969,
+    "max_accuracy": 0.53,
+    "fold_accuracies": [
+      0.53,
+      0.4986,
+      0.5029,
+      0.4969,
+      0.5081
+    ]
+  },
+  "training_summary": {
+    "total_folds": 5,
+    "epochs_per_fold": 10,
+    "avg_training_time_minutes": 3.4
+  },
+  "timestamp": "2025-06-20T01:38:37.154145"
+}

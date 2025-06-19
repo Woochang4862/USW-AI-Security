@@ -1,0 +1,23 @@
+{
+  "model_name": "DistilBert + MobileViT",
+  "model_size_mb": 538.4,
+  "cross_validation_results": {
+    "mean_accuracy": 0.9098,
+    "std_accuracy": 0.0156,
+    "min_accuracy": 0.891,
+    "max_accuracy": 0.9346,
+    "fold_accuracies": [
+      0.8978,
+      0.9346,
+      0.9066,
+      0.891,
+      0.9192
+    ]
+  },
+  "training_summary": {
+    "total_folds": 5,
+    "epochs_per_fold": 10,
+    "avg_training_time_minutes": 6.1
+  },
+  "timestamp": "2025-06-20T01:38:37.152155"
+}

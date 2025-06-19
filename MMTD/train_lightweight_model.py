@@ -5,7 +5,7 @@ import numpy as np
 from transformers import DistilBertTokenizerFast, ViTFeatureExtractor, get_linear_schedule_with_warmup, DistilBertForSequenceClassification, AutoTokenizer, AutoFeatureExtractor, DeiTForImageClassification, ViTForImageClassification, AutoModelForSequenceClassification, MobileBertForSequenceClassification, MobileViTForImageClassification, MobileBertTokenizer, MobileViTImageProcessor, AutoImageProcessor, AutoModelForImageClassification
 from torch.utils.data import DataLoader, Dataset
 from torch.optim import AdamW
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, precision_score, recall_score, f1_score
 from PIL import Image
 from tqdm import tqdm
 import json
@@ -166,6 +166,7 @@ def train_model(model, train_dataloader, val_dataloader, device,
     
     # 훈련 기록
     train_losses = []
+    train_accuracies = []
     val_accuracies = []
     val_losses = []
     
@@ -178,6 +179,8 @@ def train_model(model, train_dataloader, val_dataloader, device,
         # 훈련 단계
         model.train()
         total_train_loss = 0
+        train_predictions = []
+        train_labels = []
         
         train_pbar = tqdm(train_dataloader, desc=f"Training Epoch {epoch + 1}")
         for batch in train_pbar:
@@ -195,10 +198,19 @@ def train_model(model, train_dataloader, val_dataloader, device,
             scheduler.step()
             
             total_train_loss += loss.item()
+            
+            # 훈련 정확도 계산을 위한 예측값 수집
+            predictions = torch.argmax(outputs.logits, dim=-1)
+            train_predictions.extend(predictions.cpu().numpy())
+            train_labels.extend(inputs['labels'].cpu().numpy())
+            
             train_pbar.set_postfix({'loss': f'{loss.item():.4f}'})
         
         avg_train_loss = total_train_loss / len(train_dataloader)
+        train_accuracy = accuracy_score(train_labels, train_predictions)
+        
         train_losses.append(avg_train_loss)
+        train_accuracies.append(train_accuracy)
         
         # 검증 단계
         val_accuracy, val_loss, _, _ = evaluate_model(model, val_dataloader, device)
@@ -206,6 +218,7 @@ def train_model(model, train_dataloader, val_dataloader, device,
         val_losses.append(val_loss)
         
         print(f"Train Loss: {avg_train_loss:.4f}")
+        print(f"Train Accuracy: {train_accuracy:.4f}")
         print(f"Val Loss: {val_loss:.4f}")
         print(f"Val Accuracy: {val_accuracy:.4f}")
         
@@ -217,22 +230,23 @@ def train_model(model, train_dataloader, val_dataloader, device,
             print(f"새로운 최고 성능 모델 저장! (Accuracy: {val_accuracy:.4f})")
     
     return {
-        'train_losses': train_losses,
-        'val_accuracies': val_accuracies,
-        'val_losses': val_losses,
+        'train_loss': train_losses,
+        'train_accuracy': train_accuracies,
+        'val_loss': val_losses,
+        'val_accuracy': val_accuracies,
         'best_val_accuracy': best_val_accuracy
     }
 
 
 def plot_training_history(history, save_path='lightweight_checkpoints'):
     """훈련 과정 시각화"""
-    epochs = range(1, len(history['train_losses']) + 1)
+    epochs = range(1, len(history['train_loss']) + 1)
     
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
     
     # Loss 그래프
-    ax1.plot(epochs, history['train_losses'], 'b-', label='Training Loss')
-    ax1.plot(epochs, history['val_losses'], 'r-', label='Validation Loss')
+    ax1.plot(epochs, history['train_loss'], 'b-', label='Training Loss')
+    ax1.plot(epochs, history['val_loss'], 'r-', label='Validation Loss')
     ax1.set_title('Training and Validation Loss')
     ax1.set_xlabel('Epochs')
     ax1.set_ylabel('Loss')
@@ -240,7 +254,7 @@ def plot_training_history(history, save_path='lightweight_checkpoints'):
     ax1.grid(True)
     
     # Accuracy 그래프
-    ax2.plot(epochs, history['val_accuracies'], 'g-', label='Validation Accuracy')
+    ax2.plot(epochs, history['val_accuracy'], 'g-', label='Validation Accuracy')
     ax2.set_title('Validation Accuracy')
     ax2.set_xlabel('Epochs')
     ax2.set_ylabel('Accuracy')
@@ -307,54 +321,6 @@ experiment_configs = {
         "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
         "image_encoder_name": "WinKawaks/vit-tiny-patch16-224",
         "checkpoint_path": "outputs/tinybert_vit-tiny/best_model.pth",
-        "batch_size": 32,
-    },
-    
-    # TinyBERT + DeiT
-    "tinybert_deit": {
-        "model_class": GeneralizedMMTD,
-        "collator_class": lambda: DynamicCollator("huawei-noah/TinyBERT_General_4L_312D", "facebook/deit-base-patch16-224"),
-        "text_encoder_cls": AutoModelForSequenceClassification,
-        "image_encoder_cls": AutoModelForImageClassification,
-        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
-        "image_encoder_name": "facebook/deit-base-patch16-224",
-        "checkpoint_path": "outputs/tinybert_deit/best_model.pth",
-        "batch_size": 32,
-    },
-    
-    # TinyBERT + MobileViT
-    "tinybert_mobilevit": {
-        "model_class": GeneralizedMMTD,
-        "collator_class": lambda: DynamicCollator("huawei-noah/TinyBERT_General_4L_312D", "apple/mobilevit-small"),
-        "text_encoder_cls": AutoModelForSequenceClassification,
-        "image_encoder_cls": MobileViTForImageClassification,
-        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
-        "image_encoder_name": "apple/mobilevit-small",
-        "checkpoint_path": "outputs/tinybert_mobilevit/best_model.pth",
-        "batch_size": 32,
-    },
-    
-    # DistilBERT + ViT-Tiny
-    "distilbert_vit-tiny": {
-        "model_class": GeneralizedMMTD,
-        "collator_class": lambda: DynamicCollator("distilbert-base-multilingual-cased", "WinKawaks/vit-tiny-patch16-224"),
-        "text_encoder_cls": DistilBertForSequenceClassification,
-        "image_encoder_cls": AutoModelForImageClassification,
-        "text_encoder_name": "distilbert-base-multilingual-cased",
-        "image_encoder_name": "WinKawaks/vit-tiny-patch16-224",
-        "checkpoint_path": "outputs/distilbert_vit-tiny/best_model.pth",
-        "batch_size": 32,
-    },
-    
-    # MobileBERT + ViT-Tiny
-    "mobilebert_vit-tiny": {
-        "model_class": GeneralizedMMTD,
-        "collator_class": lambda: DynamicCollator("google/mobilebert-uncased", "WinKawaks/vit-tiny-patch16-224"),
-        "text_encoder_cls": MobileBertForSequenceClassification,
-        "image_encoder_cls": AutoModelForImageClassification,
-        "text_encoder_name": "google/mobilebert-uncased",
-        "image_encoder_name": "WinKawaks/vit-tiny-patch16-224",
-        "checkpoint_path": "outputs/mobilebert_vit-tiny/best_model.pth",
         "batch_size": 32,
     },
     
@@ -441,14 +407,25 @@ experiment_configs = {
 def train_single_fold(fold_num, experiment=None, model_type='lightweight', 
                      data_path='DATA/email_data/EDP.csv', 
                      pics_path='DATA/email_data/pics',
-                     num_epochs=3, batch_size=16, learning_rate=2e-5):
+                     num_epochs=10, batch_size=16, learning_rate=2e-5):
     """단일 fold에 대해 모델을 훈련합니다."""
-    print(f"\n{'='*20} Fold {fold_num} 훈련 {'='*20}")
+    import time
+    from datetime import datetime
+    
+    start_time = time.time()
+    
+    print(f"\n{'='*60}")
+    print(f"🚀 실험: {experiment} | Fold {fold_num} 훈련 시작")
+    print(f"{'='*60}")
+    
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"사용 디바이스: {device}")
+    print(f"📱 사용 디바이스: {device}")
+    
+    # 데이터 준비
     splitter = DataSplitter(data_path, k_fold=5)
     train_data, val_data = splitter.get_fold_data(fold_num - 1)
-    print(f"훈련 데이터: {len(train_data)}, 검증 데이터: {len(val_data)}")
+    print(f"📊 데이터 분할 - 훈련: {len(train_data)}, 검증: {len(val_data)}")
+    
     train_dataset = EmailDataset(pics_path, train_data)
     val_dataset = EmailDataset(pics_path, val_data)
 
@@ -457,6 +434,8 @@ def train_single_fold(fold_num, experiment=None, model_type='lightweight',
         config = experiment_configs[experiment]
         collator = config["collator_class"]()
         batch_size = config.get("batch_size", batch_size)
+        
+        print(f"🔧 모델 구성: {config['model_class'].__name__}")
         
         # 모델 생성 분기
         if config["model_class"] == PretrainedMMTD:
@@ -467,7 +446,7 @@ def train_single_fold(fold_num, experiment=None, model_type='lightweight',
             )
             # 사전 훈련된 모델은 학습하지 않음
             if config.get("is_pretrained", False):
-                print("사전 훈련된 모델입니다. 평가만 수행합니다.")
+                print("⚠️  사전 훈련된 모델입니다. 평가만 수행합니다.")
                 # 평가만 수행하고 리턴하는 로직을 여기에 추가할 수 있음
         elif config["model_class"] == HybridMMTD:
             # 하이브리드 모델 (사전 훈련된 BERT + 새로운 이미지 인코더)
@@ -494,12 +473,21 @@ def train_single_fold(fold_num, experiment=None, model_type='lightweight',
                 image_pretrain_weight=config["image_encoder_name"]
             )
         
-        model_name = f"{config['model_class'].__name__}_{experiment}"
+        model_name = f"{experiment}"
         save_path = os.path.dirname(config["checkpoint_path"])
         checkpoint_path = config["checkpoint_path"]
     else:
-        raise ValueError(f"Invalid experiment: {experiment}")
+        raise ValueError(f"❌ 유효하지 않은 실험: {experiment}")
 
+    # 모델 정보 출력
+    model_size_mb = 0
+    if hasattr(model, 'get_model_size'):
+        size_info = model.get_model_size()
+        model_size_mb = size_info['total_size_mb']
+        print(f"📏 모델 파라미터: {size_info['total_parameters']:,}")
+        print(f"💾 모델 크기: {model_size_mb:.2f} MB")
+    
+    # 데이터로더 생성
     train_dataloader = DataLoader(
         train_dataset,
         batch_size=batch_size,
@@ -514,158 +502,200 @@ def train_single_fold(fold_num, experiment=None, model_type='lightweight',
         collate_fn=collator,
         num_workers=0
     )
-    print(f"모델: {model_name}")
-    if hasattr(model, 'get_model_size'):
-        size_info = model.get_model_size()
-        print(f"모델 파라미터: {size_info['total_parameters']:,}")
-        print(f"모델 크기: {size_info['total_size_mb']:.2f} MB")
+    
+    print(f"⚙️  하이퍼파라미터: epochs={num_epochs}, batch_size={batch_size}, lr={learning_rate}")
+    print(f"💿 저장 경로: {save_path}")
+    
+    # 훈련 시작
     os.makedirs(save_path, exist_ok=True)
+    print(f"\n🎯 훈련 시작...")
+    
     history = train_model(
         model, train_dataloader, val_dataloader, device,
         num_epochs=num_epochs, learning_rate=learning_rate, save_path=save_path
     )
+    
+    # 훈련 히스토리 시각화
     plot_training_history(history, save_path)
+    
+    # 모델 저장
     torch.save(model.state_dict(), checkpoint_path)
-    print(f"체크포인트 저장 위치: {checkpoint_path}")
+    print(f"💾 체크포인트 저장: {checkpoint_path}")
+    
     # 최종 평가
+    print(f"\n📊 최종 평가 중...")
     model.load_state_dict(torch.load(checkpoint_path))
     final_accuracy, final_loss, predictions, labels = evaluate_model(model, val_dataloader, device)
+    
+    # 메트릭 계산
+    precision = precision_score(labels, predictions, average='weighted')
+    recall = recall_score(labels, predictions, average='weighted')
+    f1 = f1_score(labels, predictions, average='weighted')
     
     # 상세 분류 리포트
     report = classification_report(labels, predictions, target_names=['ham', 'spam'], output_dict=True)
     
-    # 결과 저장
+    # 훈련 시간 계산
+    training_time = int(time.time() - start_time)
+    
+    # 결과를 기존 JSON 형식에 맞춰 생성
     results = {
+        'model_name': experiment.replace('_', ' ').title().replace(' ', ' + '),
         'fold': fold_num,
-        'model_type': model_type,
-        'model_name': model_name,
-        'final_accuracy': final_accuracy,
-        'final_loss': final_loss,
-        'best_val_accuracy': history['best_val_accuracy'],
-        'classification_report': report,
-        'training_history': history,
-        'hyperparameters': {
-            'num_epochs': num_epochs,
+        'final_accuracy': round(final_accuracy, 4),
+        'final_loss': round(final_loss, 4),
+        'best_accuracy': round(max(history['val_accuracy']), 4),
+        'best_loss': round(min(history['val_loss']), 4),
+        'epochs_trained': num_epochs,
+        'training_time_seconds': training_time,
+        'model_size_mb': model_size_mb,
+        'parameters': {
+            'learning_rate': learning_rate,
             'batch_size': batch_size,
-            'learning_rate': learning_rate
-        }
+            'weight_decay': 0.01,
+            'warmup_steps': int(0.1 * len(train_dataloader) * num_epochs)
+        },
+        'history': {
+            'train_loss': [round(loss, 4) for loss in history['train_loss']],
+            'train_accuracy': [round(acc, 4) for acc in history['train_accuracy']],
+            'val_loss': [round(loss, 4) for loss in history['val_loss']],
+            'val_accuracy': [round(acc, 4) for acc in history['val_accuracy']]
+        },
+        'metrics': {
+            'precision': round(precision, 4),
+            'recall': round(recall, 4),
+            'f1_score': round(f1, 4)
+        },
+        'classification_report': report,
+        'timestamp': datetime.now().isoformat()
     }
     
     # JSON으로 결과 저장
-    with open(os.path.join(save_path, 'training_results.json'), 'w', encoding='utf-8') as f:
+    results_file = os.path.join(save_path, f'fold_{fold_num}_results.json')
+    with open(results_file, 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
     
-    print(f"\nFold {fold_num} 훈련 완료!")
-    print(f"최고 검증 정확도: {history['best_val_accuracy']:.4f}")
-    print(f"최종 테스트 정확도: {final_accuracy:.4f}")
-    print(f"결과 저장 위치: {save_path}")
+    # 결과 출력
+    print(f"\n{'='*60}")
+    print(f"✅ Fold {fold_num} 훈련 완료!")
+    print(f"{'='*60}")
+    print(f"🎯 최고 검증 정확도: {history['best_val_accuracy']:.4f}")
+    print(f"🎯 최종 테스트 정확도: {final_accuracy:.4f}")
+    print(f"📉 최종 테스트 손실: {final_loss:.4f}")
+    print(f"🎯 Precision: {precision:.4f}")
+    print(f"🎯 Recall: {recall:.4f}")
+    print(f"🎯 F1-Score: {f1:.4f}")
+    print(f"🏷️  Ham F1-Score: {report['ham']['f1-score']:.4f}")
+    print(f"🏷️  Spam F1-Score: {report['spam']['f1-score']:.4f}")
+    print(f"⏱️  훈련 시간: {training_time}초")
+    print(f"💾 결과 저장: {results_file}")
+    print(f"{'='*60}")
     
     return results
-
-
-def train_all_folds(model_type='lightweight', num_epochs=3, batch_size=16, learning_rate=2e-5):
-    """모든 fold에 대해 모델을 훈련합니다."""
-    print(f"경량화 모델 ({model_type}) 전체 fold 훈련 시작")
-    print("="*60)
-    
-    all_results = []
-    
-    for fold in range(1, 6):
-        result = train_single_fold(
-            fold, model_type=model_type,
-            num_epochs=num_epochs, batch_size=batch_size, learning_rate=learning_rate
-        )
-        
-        if result:
-            all_results.append(result)
-            
-            # 메모리 정리
-            torch.cuda.empty_cache() if torch.cuda.is_available() else None
-    
-    if not all_results:
-        print("훈련 가능한 fold가 없습니다.")
-        return
-    
-    # 전체 결과 요약
-    print("\n" + "="*60)
-    print("전체 훈련 결과 요약")
-    print("="*60)
-    
-    accuracies = [r['best_val_accuracy'] for r in all_results]
-    mean_accuracy = np.mean(accuracies)
-    std_accuracy = np.std(accuracies)
-    
-    print(f"평균 검증 정확도: {mean_accuracy:.4f} ± {std_accuracy:.4f}")
-    print(f"최고 검증 정확도: {max(accuracies):.4f}")
-    print(f"최저 검증 정확도: {min(accuracies):.4f}")
-    
-    # Fold별 상세 결과
-    print(f"\n{'Fold':<6} {'Val Accuracy':<15} {'Test Accuracy':<15} {'Ham F1':<10} {'Spam F1':<10}")
-    print("-" * 60)
-    
-    for result in all_results:
-        fold = result['fold']
-        val_acc = result['best_val_accuracy']
-        test_acc = result['final_accuracy']
-        ham_f1 = result['classification_report']['ham']['f1-score']
-        spam_f1 = result['classification_report']['spam']['f1-score']
-        
-        print(f"{fold:<6} {val_acc:<15.4f} {test_acc:<15.4f} {ham_f1:<10.4f} {spam_f1:<10.4f}")
-    
-    # 전체 결과 저장
-    summary_results = {
-        'model_type': model_type,
-        'individual_results': all_results,
-        'summary_statistics': {
-            'mean_val_accuracy': mean_accuracy,
-            'std_val_accuracy': std_accuracy,
-            'min_val_accuracy': min(accuracies),
-            'max_val_accuracy': max(accuracies)
-        }
-    }
-    
-    summary_path = f'lightweight_checkpoints/{model_type}_summary'
-    os.makedirs(summary_path, exist_ok=True)
-    
-    with open(os.path.join(summary_path, 'all_folds_results.json'), 'w', encoding='utf-8') as f:
-        json.dump(summary_results, f, indent=2, ensure_ascii=False)
-    
-    print(f"\n전체 훈련 완료! 요약 결과가 '{summary_path}'에 저장되었습니다.")
 
 
 def main():
     """메인 훈련 함수"""
     import argparse
     
-    parser = argparse.ArgumentParser(description='경량화 MMTD 모델 훈련')
+    parser = argparse.ArgumentParser(description='🤖 MMTD 모델 훈련 스크립트')
     parser.add_argument('--model_type', type=str, default='lightweight', 
                        choices=['lightweight', 'ultralight'],
                        help='훈련할 모델 타입')
     parser.add_argument('--fold', type=int, default=None,
                        help='특정 fold만 훈련 (1-5), None이면 모든 fold 훈련')
-    parser.add_argument('--epochs', type=int, default=3,
+    parser.add_argument('--epochs', type=int, default=10,
                        help='훈련 에포크 수')
     parser.add_argument('--batch_size', type=int, default=16,
                        help='배치 크기')
     parser.add_argument('--learning_rate', type=float, default=2e-5,
                        help='학습률')
-    parser.add_argument('--experiment', type=str, default=None, help='실험 config 이름 (예: mobilebert_mobilevit)')
+    parser.add_argument('--experiment', type=str, default=None, 
+                       help='실험 config 이름 (예: mobilebert_mobilevit)')
     
     args = parser.parse_args()
     
+    # 실험 이름 검증
+    if args.experiment and args.experiment not in experiment_configs:
+        print(f"❌ 유효하지 않은 실험 이름: {args.experiment}")
+        print(f"📋 사용 가능한 실험들:")
+        for exp_name in experiment_configs.keys():
+            print(f"   - {exp_name}")
+        return
+    
+    print(f"\n🚀 MMTD 모델 훈련 시작")
+    print(f"📋 실험: {args.experiment}")
+    print(f"🎯 모델 타입: {args.model_type}")
+    print(f"📊 에포크: {args.epochs}")
+    print(f"📦 배치 크기: {args.batch_size}")
+    print(f"📈 학습률: {args.learning_rate}")
+    
     if args.fold is not None:
-        train_single_fold(
+        print(f"🔢 단일 Fold: {args.fold}")
+        if args.fold < 1 or args.fold > 5:
+            print(f"❌ 유효하지 않은 fold 번호: {args.fold} (1-5 사이여야 함)")
+            return
+            
+        result = train_single_fold(
             args.fold, experiment=args.experiment, model_type=args.model_type,
             num_epochs=args.epochs, batch_size=args.batch_size, 
             learning_rate=args.learning_rate
         )
+        
+        if result:
+            print(f"\n🎉 단일 Fold {args.fold} 훈련 성공적으로 완료!")
+        else:
+            print(f"\n❌ Fold {args.fold} 훈련 실패")
     else:
+        print(f"🔢 전체 Folds: 1-5")
+        all_results = []
+        
         for fold in range(1, 6):
-            train_single_fold(
-                fold, experiment=args.experiment, model_type=args.model_type,
-                num_epochs=args.epochs, batch_size=args.batch_size, 
-                learning_rate=args.learning_rate
-            )
+            try:
+                result = train_single_fold(
+                    fold, experiment=args.experiment, model_type=args.model_type,
+                    num_epochs=args.epochs, batch_size=args.batch_size, 
+                    learning_rate=args.learning_rate
+                )
+                if result:
+                    all_results.append(result)
+                    
+                # 메모리 정리
+                torch.cuda.empty_cache() if torch.cuda.is_available() else None
+                
+            except Exception as e:
+                print(f"❌ Fold {fold} 훈련 중 오류 발생: {str(e)}")
+                continue
+        
+        # 전체 결과 요약
+        if all_results:
+            print(f"\n{'='*80}")
+            print(f"📊 전체 실험 결과 요약 ({args.experiment})")
+            print(f"{'='*80}")
+            
+            accuracies = [r['best_accuracy'] for r in all_results]
+            mean_accuracy = np.mean(accuracies)
+            std_accuracy = np.std(accuracies)
+            
+            print(f"📈 평균 검증 정확도: {mean_accuracy:.4f} ± {std_accuracy:.4f}")
+            print(f"🎯 최고 검증 정확도: {max(accuracies):.4f}")
+            print(f"📉 최저 검증 정확도: {min(accuracies):.4f}")
+            
+            print(f"\n{'Fold':<6} {'Val Accuracy':<15} {'Test Accuracy':<15} {'Ham F1':<10} {'Spam F1':<10}")
+            print("-" * 70)
+            
+            for result in all_results:
+                fold = result['fold']
+                val_acc = result['best_accuracy']
+                test_acc = result['final_accuracy']
+                ham_f1 = result['classification_report']['ham']['f1-score']
+                spam_f1 = result['classification_report']['spam']['f1-score']
+                
+                print(f"{fold:<6} {val_acc:<15.4f} {test_acc:<15.4f} {ham_f1:<10.4f} {spam_f1:<10.4f}")
+            
+            print(f"\n🎉 전체 {len(all_results)}/5 Folds 훈련 완료!")
+        else:
+            print(f"\n❌ 훈련 가능한 fold가 없습니다.")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,23 @@
+{
+  "model_name": "DistilBert + ViT-Tiny",
+  "model_size_mb": 539.0,
+  "cross_validation_results": {
+    "mean_accuracy": 0.9841,
+    "std_accuracy": 0.007,
+    "min_accuracy": 0.975,
+    "max_accuracy": 0.9923,
+    "fold_accuracies": [
+      0.9809,
+      0.9923,
+      0.975,
+      0.98,
+      0.9922
+    ]
+  },
+  "training_summary": {
+    "total_folds": 5,
+    "epochs_per_fold": 10,
+    "avg_training_time_minutes": 4.8
+  },
+  "timestamp": "2025-06-20T01:38:37.152742"
+}

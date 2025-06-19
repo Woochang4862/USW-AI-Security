@@ -1,0 +1,23 @@
+{
+  "model_name": "DistilBert + DeiT",
+  "model_size_mb": 853.3,
+  "cross_validation_results": {
+    "mean_accuracy": 0.9954,
+    "std_accuracy": 0.0016,
+    "min_accuracy": 0.9928,
+    "max_accuracy": 0.9974,
+    "fold_accuracies": [
+      0.9966,
+      0.9928,
+      0.9974,
+      0.9945,
+      0.9954
+    ]
+  },
+  "training_summary": {
+    "total_folds": 5,
+    "epochs_per_fold": 10,
+    "avg_training_time_minutes": 9.0
+  },
+  "timestamp": "2025-06-20T01:38:37.151551"
+}

@@ -1,0 +1,100 @@
+{
+  "model_name": "MobileBert + DeiT",
+  "fold": 2,
+  "final_accuracy": 0.4986,
+  "final_loss": 0.9283,
+  "best_accuracy": 0.4997,
+  "best_loss": 0.902,
+  "epochs_trained": 10,
+  "training_time_seconds": 302,
+  "model_size_mb": 428.1,
+  "parameters": {
+    "learning_rate": 2e-05,
+    "batch_size": 16,
+    "weight_decay": 0.01,
+    "warmup_steps": 100
+  },
+  "history": {
+    "train_loss": [
+      0.9421,
+      0.9064,
+      1.04,
+      0.9144,
+      0.9163,
+      0.9427,
+      0.8913,
+      0.8643,
+      0.8882,
+      0.815
+    ],
+    "train_accuracy": [
+      0.4996,
+      0.4993,
+      0.4989,
+      0.5442,
+      0.5091,
+      0.5415,
+      0.5091,
+      0.542,
+      0.5311,
+      0.547
+    ],
+    "val_loss": [
+      0.902,
+      1.0357,
+      0.9131,
+      1.2426,
+      1.3291,
+      1.1996,
+      1.1757,
+      1.0319,
+      1.0761,
+      0.9283
+    ],
+    "val_accuracy": [
+      0.4997,
+      0.4994,
+      0.4992,
+      0.3724,
+      0.3845,
+      0.4281,
+      0.4266,
+      0.4677,
+      0.4605,
+      0.4986
+    ]
+  },
+  "metrics": {
+    "precision": 0.4833,
+    "recall": 0.5022,
+    "f1_score": 0.5026
+  },
+  "classification_report": {
+    "ham": {
+      "precision": 0.5244,
+      "recall": 0.4976,
+      "f1-score": 0.5107,
+      "support": 217
+    },
+    "spam": {
+      "precision": 0.5065,
+      "recall": 0.5184,
+      "f1-score": 0.5124,
+      "support": 220
+    },
+    "accuracy": 0.4986,
+    "macro avg": {
+      "precision": 0.5155,
+      "recall": 0.508,
+      "f1-score": 0.5115,
+      "support": 387
+    },
+    "weighted avg": {
+      "precision": 0.5189,
+      "recall": 0.4987,
+      "f1-score": 0.5125,
+      "support": 390
+    }
+  },
+  "timestamp": "2025-06-12T01:51:30.655331"
+}

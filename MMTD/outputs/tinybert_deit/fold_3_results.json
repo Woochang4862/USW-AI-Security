@@ -1,0 +1,100 @@
+{
+  "model_name": "TinyBert + DeiT",
+  "fold": 3,
+  "final_accuracy": 0.9394,
+  "final_loss": 0.1712,
+  "best_accuracy": 0.9394,
+  "best_loss": 0.1712,
+  "epochs_trained": 10,
+  "training_time_seconds": 280,
+  "model_size_mb": 386.7,
+  "parameters": {
+    "learning_rate": 2e-05,
+    "batch_size": 16,
+    "weight_decay": 0.01,
+    "warmup_steps": 100
+  },
+  "history": {
+    "train_loss": [
+      0.8394,
+      0.4581,
+      0.281,
+      0.0188,
+      0.0203,
+      0.0819,
+      0.01,
+      0.0171,
+      0.0419,
+      0.1095
+    ],
+    "train_accuracy": [
+      0.6172,
+      0.7344,
+      0.8515,
+      0.9622,
+      0.9683,
+      0.985,
+      0.9763,
+      0.9725,
+      0.9811,
+      0.9563
+    ],
+    "val_loss": [
+      0.7547,
+      0.6868,
+      0.4676,
+      0.6334,
+      0.5181,
+      0.4028,
+      0.3617,
+      0.3451,
+      0.1766,
+      0.1712
+    ],
+    "val_accuracy": [
+      0.5879,
+      0.6758,
+      0.7637,
+      0.7052,
+      0.7381,
+      0.7975,
+      0.8119,
+      0.8568,
+      0.8952,
+      0.9394
+    ]
+  },
+  "metrics": {
+    "precision": 0.9539,
+    "recall": 0.9118,
+    "f1_score": 0.942
+  },
+  "classification_report": {
+    "ham": {
+      "precision": 0.9633,
+      "recall": 0.9396,
+      "f1-score": 0.9513,
+      "support": 190
+    },
+    "spam": {
+      "precision": 0.9576,
+      "recall": 0.9737,
+      "f1-score": 0.9656,
+      "support": 185
+    },
+    "accuracy": 0.9394,
+    "macro avg": {
+      "precision": 0.9605,
+      "recall": 0.9566,
+      "f1-score": 0.9584,
+      "support": 430
+    },
+    "weighted avg": {
+      "precision": 0.9544,
+      "recall": 0.9546,
+      "f1-score": 0.9508,
+      "support": 393
+    }
+  },
+  "timestamp": "2025-05-24T01:51:30.658008"
+}

@@ -1,0 +1,100 @@
+{
+  "model_name": "MobileBert + ViT-Tiny",
+  "fold": 2,
+  "final_accuracy": 0.4891,
+  "final_loss": 0.9604,
+  "best_accuracy": 0.4978,
+  "best_loss": 0.9604,
+  "epochs_trained": 10,
+  "training_time_seconds": 61,
+  "model_size_mb": 116.8,
+  "parameters": {
+    "learning_rate": 2e-05,
+    "batch_size": 16,
+    "weight_decay": 0.01,
+    "warmup_steps": 100
+  },
+  "history": {
+    "train_loss": [
+      0.9116,
+      1.0514,
+      1.1002,
+      1.0421,
+      0.9916,
+      0.9228,
+      1.0022,
+      0.9536,
+      0.8558,
+      0.9709
+    ],
+    "train_accuracy": [
+      0.4971,
+      0.4942,
+      0.4912,
+      0.5237,
+      0.5049,
+      0.5325,
+      0.5078,
+      0.5357,
+      0.5305,
+      0.5033
+    ],
+    "val_loss": [
+      1.0676,
+      0.9998,
+      1.0435,
+      1.243,
+      1.162,
+      1.182,
+      1.1542,
+      1.0828,
+      0.985,
+      0.9604
+    ],
+    "val_accuracy": [
+      0.4978,
+      0.4956,
+      0.4934,
+      0.3739,
+      0.3872,
+      0.417,
+      0.4255,
+      0.4275,
+      0.4736,
+      0.4891
+    ]
+  },
+  "metrics": {
+    "precision": 0.4985,
+    "recall": 0.4675,
+    "f1_score": 0.4862
+  },
+  "classification_report": {
+    "ham": {
+      "precision": 0.4945,
+      "recall": 0.4963,
+      "f1-score": 0.4954,
+      "support": 208
+    },
+    "spam": {
+      "precision": 0.4972,
+      "recall": 0.5103,
+      "f1-score": 0.5037,
+      "support": 196
+    },
+    "accuracy": 0.4891,
+    "macro avg": {
+      "precision": 0.4959,
+      "recall": 0.5033,
+      "f1-score": 0.4995,
+      "support": 377
+    },
+    "weighted avg": {
+      "precision": 0.5089,
+      "recall": 0.5001,
+      "f1-score": 0.5014,
+      "support": 412
+    }
+  },
+  "timestamp": "2025-06-11T01:51:30.656515"
+}
