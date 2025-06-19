@@ -451,12 +451,26 @@ class HybridMMTD(torch.nn.Module):
                     if not hasattr(self, 'image_projection'):
                         self.image_projection = torch.nn.Linear(c, 768).to(self.device)
                     image_last_hidden_state = self.image_projection(image_last_hidden_state)
+            elif len(image_last_hidden_state.shape) == 3:
+                # 3차원 출력 (batch, seq_len, hidden_size) - ViT-Tiny 등
+                c = image_last_hidden_state.shape[-1]
+                if c != 768:
+                    if not hasattr(self, 'image_projection'):
+                        self.image_projection = torch.nn.Linear(c, 768).to(self.device)
+                    image_last_hidden_state = self.image_projection(image_last_hidden_state)
         elif hasattr(image_outputs, 'last_hidden_state'):
             image_last_hidden_state = image_outputs.last_hidden_state
             # 차원 확인 및 처리
             if len(image_last_hidden_state.shape) == 4:
                 b, h, w, c = image_last_hidden_state.shape
                 image_last_hidden_state = image_last_hidden_state.view(b, h*w, c)
+                if c != 768:
+                    if not hasattr(self, 'image_projection'):
+                        self.image_projection = torch.nn.Linear(c, 768).to(self.device)
+                    image_last_hidden_state = self.image_projection(image_last_hidden_state)
+            elif len(image_last_hidden_state.shape) == 3:
+                # 3차원 출력 - ViT-Tiny 등
+                c = image_last_hidden_state.shape[-1]
                 if c != 768:
                     if not hasattr(self, 'image_projection'):
                         self.image_projection = torch.nn.Linear(c, 768).to(self.device)
