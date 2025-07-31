@@ -290,8 +290,6 @@ class PretrainedMMTD(torch.nn.Module):
         
         # 기존 MMTD 모델 구조로 초기화
         self.mmtd = MMTD(
-            bert_pretrain_weight="google-bert/bert-base-uncased",
-            beit_pretrain_weight="microsoft/beit-base-patch16-224",
             device=device
         )
         
@@ -331,11 +329,11 @@ class PretrainedMMTD(torch.nn.Module):
         }
 
 
-class HybridMMTD(torch.nn.Module):
+class HybridMMTDImageTrainable(torch.nn.Module):
     """사전 훈련된 BERT와 새로운 이미지 인코더를 결합한 하이브리드 모델"""
     def __init__(self, pretrained_checkpoint_path="checkpoints/fold5/checkpoint-939/pytorch_model.bin",
                  image_encoder_cls=None, image_pretrain_weight=None, device=None):
-        super(HybridMMTD, self).__init__()
+        super(HybridMMTDImageTrainable, self).__init__()
         
         self.device = device if device else torch.device("cuda" if torch.cuda.is_available() else "cpu")
         

@@ -8,9 +8,6 @@ from transformers import (
     get_linear_schedule_with_warmup,
     DistilBertForSequenceClassification,
     AutoTokenizer,
-    AutoFeatureExtractor,
-    DeiTForImageClassification,
-    ViTForImageClassification,
     AutoModelForSequenceClassification,
     MobileBertForSequenceClassification,
     MobileViTForImageClassification,
@@ -41,12 +38,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TORCH_USE_CUDA_DSA"] = "1"
 
 # 경량화 모델 임포트
-from lightweight_models import LightWeightMMTD, UltraLightMMTD, GeneralizedMMTD
-from utils import MobileBertMobileViTCollator
-from models import PretrainedMMTD, HybridMMTD, HybridMMTDTextTrainable
-
-# TinyBERT는 transformers에서 'huawei-noah/TinyBERT_General_4L_312D' 등으로 사용
-from transformers import DeiTForImageClassification, ViTForImageClassification
+from lightweight_models import GeneralizedMMTD
+from models import PretrainedMMTD, HybridMMTDImageTrainable, HybridMMTDTextTrainable
 
 
 class EmailDataset(Dataset):
@@ -329,7 +322,7 @@ experiment_configs = {
         "text_encoder_name": "google/mobilebert-uncased",
         "image_encoder_name": "apple/mobilevit-small",
         "checkpoint_path": "outputs/mobilebert_mobilevit/best_model.pth",
-        "batch_size": 32,
+        "batch_size": 40,
     },
     # MobileBert + DeiT
     "mobilebert_deit": {
@@ -342,7 +335,7 @@ experiment_configs = {
         "text_encoder_name": "google/mobilebert-uncased",
         "image_encoder_name": "facebook/deit-base-patch16-224",
         "checkpoint_path": "outputs/mobilebert_deit/best_model.pth",
-        "batch_size": 32,
+        "batch_size": 40,
     },
     # DistilBERT + MobileViT
     "distilbert_mobilevit": {
@@ -355,7 +348,7 @@ experiment_configs = {
         "text_encoder_name": "distilbert-base-multilingual-cased",
         "image_encoder_name": "apple/mobilevit-small",
         "checkpoint_path": "outputs/distilbert_mobilevit/best_model.pth",
-        "batch_size": 32,
+        "batch_size": 40,
     },
     # DistilBERT + DeiT
     "distilbert_deit": {
@@ -368,7 +361,7 @@ experiment_configs = {
         "text_encoder_name": "distilbert-base-multilingual-cased",
         "image_encoder_name": "facebook/deit-base-patch16-224",
         "checkpoint_path": "outputs/distilbert_deit/best_model.pth",
-        "batch_size": 32,
+        "batch_size": 40,
     },
     # TinyBERT + ViT-Tiny
     "tinybert_vit-tiny": {
@@ -381,7 +374,7 @@ experiment_configs = {
         "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
         "image_encoder_name": "WinKawaks/vit-tiny-patch16-224",
         "checkpoint_path": "outputs/tinybert_vit-tiny/best_model.pth",
-        "batch_size": 32,
+        "batch_size": 40,
     },
     # === 사전 훈련된 BERT+BEIT 기반 조합들 ===
     # BERT + BEIT (사전 훈련된 모델, 추론만 가능)
@@ -390,45 +383,43 @@ experiment_configs = {
         "collator_class": lambda: DynamicCollator(
             "google-bert/bert-base-uncased", "microsoft/beit-base-patch16-224"
         ),
-        "checkpoint_path": "outputs/bert_beit_pretrained/best_model.pth",
-        "batch_size": 32,
+        "batch_size": 40,
         "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
-        "is_pretrained": True,  # 이미 훈련된 모델임을 표시
     },
     # BERT + DeiT (사전 훈련된 BERT + 새로운 DeiT)
     "bert_deit": {
-        "model_class": HybridMMTD,
+        "model_class": HybridMMTDImageTrainable,
         "collator_class": lambda: DynamicCollator(
             "google-bert/bert-base-uncased", "facebook/deit-base-patch16-224"
         ),
         "image_encoder_cls": AutoModelForImageClassification,
         "image_encoder_name": "facebook/deit-base-patch16-224",
         "checkpoint_path": "outputs/bert_deit/best_model.pth",
-        "batch_size": 32,
+        "batch_size": 40,
         "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
     },
     # BERT + MobileViT (사전 훈련된 BERT + 새로운 MobileViT)
     "bert_mobilevit": {
-        "model_class": HybridMMTD,
+        "model_class": HybridMMTDImageTrainable,
         "collator_class": lambda: DynamicCollator(
             "google-bert/bert-base-uncased", "apple/mobilevit-small"
         ),
         "image_encoder_cls": MobileViTForImageClassification,
         "image_encoder_name": "apple/mobilevit-small",
         "checkpoint_path": "outputs/bert_mobilevit/best_model.pth",
-        "batch_size": 32,
+        "batch_size": 40,
         "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
     },
     # BERT + ViT-Tiny (사전 훈련된 BERT + 새로운 ViT-Tiny)
     "bert_vit-tiny": {
-        "model_class": HybridMMTD,
+        "model_class": HybridMMTDImageTrainable,
         "collator_class": lambda: DynamicCollator(
             "google-bert/bert-base-uncased", "WinKawaks/vit-tiny-patch16-224"
         ),
         "image_encoder_cls": AutoModelForImageClassification,
         "image_encoder_name": "WinKawaks/vit-tiny-patch16-224",
         "checkpoint_path": "outputs/bert_vit-tiny/best_model.pth",
-        "batch_size": 32,
+        "batch_size": 40,
         "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
     },
     # === BEiT 고정 + 텍스트 인코더 학습 조합들 ===
@@ -441,7 +432,7 @@ experiment_configs = {
         "text_encoder_cls": MobileBertForSequenceClassification,
         "text_encoder_name": "google/mobilebert-uncased",
         "checkpoint_path": "outputs/mobilebert_beit/best_model.pth",
-        "batch_size": 32,
+        "batch_size": 40,
         "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
     },
     # DistilBERT + BEiT (사전 훈련된 BEiT + 새로운 DistilBERT)
@@ -453,7 +444,7 @@ experiment_configs = {
         "text_encoder_cls": DistilBertForSequenceClassification,
         "text_encoder_name": "distilbert-base-multilingual-cased",
         "checkpoint_path": "outputs/distilbert_beit/best_model.pth",
-        "batch_size": 32,
+        "batch_size": 40,
         "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
     },
     # TinyBERT + BEiT (사전 훈련된 BEiT + 새로운 TinyBERT)
@@ -465,7 +456,7 @@ experiment_configs = {
         "text_encoder_cls": AutoModelForSequenceClassification,
         "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
         "checkpoint_path": "outputs/tinybert_beit/best_model.pth",
-        "batch_size": 32,
+        "batch_size": 40,
         "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
     },
 }
@@ -473,12 +464,11 @@ experiment_configs = {
 
 def train_single_fold(
     fold_num,
-    model_type="lightweight",
+    experiment,
     data_path="DATA/email_data/EDP.csv",
     pics_path="DATA/email_data/pics",
-    num_epochs=10,
-    batch_size=16,
-    learning_rate=2e-5,
+    num_epochs=3,
+    learning_rate=5e-4,
 ):
     """단일 fold에 대해 모델을 훈련합니다."""
     import time
@@ -487,7 +477,7 @@ def train_single_fold(
     start_time = time.time()
 
     print(f"\n{'='*60}")
-    print(f"🚀 실험: {model_type} | Fold {fold_num} 훈련 시작")
+    print(f"🚀 실험: {experiment} | Fold {fold_num} 훈련 시작")
     print(f"{'='*60}")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -500,6 +490,40 @@ def train_single_fold(
 
     train_dataset = EmailDataset(pics_path, train_data)
     val_dataset = EmailDataset(pics_path, val_data)
+
+    # experiment 에 따라 모델 생성
+    model_class = experiment_configs[experiment]["model_class"]
+    if model_class == GeneralizedMMTD:
+        model = model_class(
+            text_encoder_cls=experiment_configs[experiment]["text_encoder_cls"],
+            image_encoder_cls=experiment_configs[experiment]["image_encoder_cls"],
+            text_pretrain_weight=experiment_configs[experiment]["text_encoder_name"],
+            image_pretrain_weight=experiment_configs[experiment]["image_encoder_name"],
+        )
+    elif model_class == HybridMMTDImageTrainable:
+        model = model_class(
+            pretrained_checkpoint_path=experiment_configs[experiment]["pretrained_checkpoint"],
+            image_encoder_cls=experiment_configs[experiment]["image_encoder_cls"],
+            image_pretrain_weight=experiment_configs[experiment]["image_encoder_name"],
+            device=device,
+        )
+    elif model_class == HybridMMTDTextTrainable:
+        model = model_class(
+            pretrained_checkpoint_path=experiment_configs[experiment]["pretrained_checkpoint"],
+            text_encoder_cls=experiment_configs[experiment]["text_encoder_cls"],
+            text_pretrain_weight=experiment_configs[experiment]["text_encoder_name"],
+            device=device,
+        )
+    elif model_class == PretrainedMMTD:
+        model = model_class(
+            checkpoint_path=experiment_configs[experiment]["pretrained_checkpoint"],
+            device=device,
+        )
+        return
+    
+    collator = experiment_configs[experiment]["collator_class"]()
+    
+    batch_size = experiment_configs[experiment]["batch_size"]
 
     # 모델 정보 출력
     model_size_mb = 0
@@ -525,13 +549,17 @@ def train_single_fold(
         num_workers=0,
     )
 
-    print(
-        f"⚙️  하이퍼파라미터: epochs={num_epochs}, batch_size={batch_size}, lr={learning_rate}"
-    )
+    save_path = f"outputs/{experiment}"
+    checkpoint_path = f"outputs/{experiment}/"
+    checkpoint_name = f"fold_{fold_num}_best_model.pth"
+    os.makedirs(save_path, exist_ok=True)
+    os.makedirs(checkpoint_path, exist_ok=True)
+    checkpoint_path = os.path.join(checkpoint_path, checkpoint_name)
+
+    print(f"⚙️  하이퍼파라미터: epochs={num_epochs}, batch_size={batch_size}, lr={learning_rate}")
     print(f"💿 저장 경로: {save_path}")
 
     # 훈련 시작
-    os.makedirs(save_path, exist_ok=True)
     print(f"\n🎯 훈련 시작...")
 
     history = train_model(
@@ -634,28 +662,22 @@ def main():
 
     parser = argparse.ArgumentParser(description="🤖 MMTD 모델 훈련 스크립트")
     parser.add_argument(
-        "--model_type",
-        type=str,
-        default="lightweight",
-        choices=["lightweight", "ultralight"],
-        help="훈련할 모델 타입",
-    )
-    parser.add_argument(
         "--fold",
         type=int,
         default=5,
         help="특정 fold만 훈련 (1-5), None이면 모든 fold 훈련",
     )
     parser.add_argument("--epochs", type=int, default=3, help="훈련 에포크 수")
-    parser.add_argument("--batch_size", type=int, default=40, help="배치 크기")
     parser.add_argument("--learning_rate", type=float, default=5e-4, help="학습률")
+    parser.add_argument(
+        "--experiment", type=str, default="bert_beit_pretrained", help="실험 이름"
+    )
 
     args = parser.parse_args()
 
     print(f"\n🚀 MMTD 모델 훈련 시작")
-    print(f"🎯 모델 타입: {args.model_type}")
+    print(f"🎯 실험: {args.experiment}")
     print(f"📊 에포크: {args.epochs}")
-    print(f"📦 배치 크기: {args.batch_size}")
     print(f"📈 학습률: {args.learning_rate}")
 
     print(f"🔢 전체 Folds: 1-5")
@@ -665,12 +687,11 @@ def main():
         try:
             result = train_single_fold(
                 fold,
-                model_type=args.model_type,
+                experiment=args.experiment,
                 num_epochs=args.epochs,
-                batch_size=args.batch_size,
                 learning_rate=args.learning_rate,
             )
-            
+
             if result:
                 all_results.append(result)
 
@@ -713,7 +734,7 @@ def main():
 
         print(f"\n🎉 전체 {len(all_results)}/5 Folds 훈련 완료!")
     else:
-        print(f"\n❌ 훈련 가능한 fold가 없습니다.")
+        print(f"\n❌ 훈련 실패")
 
 
 if __name__ == "__main__":
