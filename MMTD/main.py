@@ -79,7 +79,6 @@ if __name__ == '__main__':
 
         trainer.train()
 
-        trainer.train()
         train_acc = trainer.evaluate(eval_dataset=train_dataset)
         train_result = {'train_acc': train_acc['eval_acc'], 'train_loss': train_acc['eval_loss']}
         wandb.log(train_result)
