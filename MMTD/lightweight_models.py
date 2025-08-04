@@ -264,8 +264,8 @@ class GeneralizedMMTD(torch.nn.Module):
         self.classifier = None
         self.num_labels = 2
 
-    def forward(self, input_ids, attention_mask, pixel_values, labels=None):
-        text_outputs = self.text_encoder(input_ids=input_ids, attention_mask=attention_mask)
+    def forward(self, input_ids, attention_mask, pixel_values, labels=None, token_type_ids=None):
+        text_outputs = self.text_encoder(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids)
         image_outputs = self.image_encoder(pixel_values=pixel_values)
         text_last_hidden_state = text_outputs.hidden_states[-1]
         image_last_hidden_state = image_outputs.hidden_states[-1]
