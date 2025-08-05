@@ -459,6 +459,52 @@ experiment_configs = {
         "batch_size": 40,
         "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
     },
+    "tinybert_mobilevit": {
+        "model_class": HybridMMTDTextTrainable,
+        "collator_class": lambda: DynamicCollator(
+            "huawei-noah/TinyBERT_General_4L_312D", "apple/mobilevit-small"
+        ),
+        "text_encoder_cls": AutoModelForSequenceClassification,
+        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
+        "image_encoder_cls": MobileViTForImageClassification,
+        "image_encoder_name": "apple/mobilevit-small",
+        "checkpoint_path": "outputs/tinybert_mobilevit/best_model.pth",
+        "batch_size": 40,
+    },
+    "tinybert_deit": {
+        "model_class": HybridMMTDTextTrainable,
+        "collator_class": lambda: DynamicCollator(
+            "huawei-noah/TinyBERT_General_4L_312D", "facebook/deit-base-patch16-224"
+        ),
+        "text_encoder_cls": AutoModelForSequenceClassification,
+        "text_encoder_name": "huawei-noah/TinyBERT_General_4L_312D",
+        "image_encoder_cls": AutoModelForImageClassification,
+        "image_encoder_name": "facebook/deit-base-patch16-224",
+        "checkpoint_path": "outputs/tinybert_deit/best_model.pth",
+        "batch_size": 40,
+    },
+    "mobilebert_vit-tiny": {
+        "model_class": HybridMMTDTextTrainable,
+        "collator_class": lambda: DynamicCollator(
+            "google/mobilebert-uncased", "WinKawaks/vit-tiny-patch16-224"
+        ),
+        "text_encoder_cls": MobileBertForSequenceClassification,
+        "text_encoder_name": "google/mobilebert-uncased",
+        "image_encoder_cls": AutoModelForImageClassification,
+        "image_encoder_name": "WinKawaks/vit-tiny-patch16-224",
+        "batch_size": 40,
+    },
+    "distilbert_vit-tiny": {
+        "model_class": HybridMMTDTextTrainable,
+        "collator_class": lambda: DynamicCollator(
+            "distilbert-base-multilingual-cased", "WinKawaks/vit-tiny-patch16-224"
+        ),
+        "text_encoder_cls": DistilBertForSequenceClassification,
+        "text_encoder_name": "distilbert-base-multilingual-cased",
+        "image_encoder_cls": AutoModelForImageClassification,
+        "image_encoder_name": "WinKawaks/vit-tiny-patch16-224",
+        "batch_size": 40,
+    }
 }
 
 
