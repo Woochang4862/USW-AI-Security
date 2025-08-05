@@ -460,7 +460,7 @@ experiment_configs = {
         "pretrained_checkpoint": "checkpoints/fold5/checkpoint-939/pytorch_model.bin",
     },
     "tinybert_mobilevit": {
-        "model_class": HybridMMTDTextTrainable,
+        "model_class": GeneralizedMMTD,
         "collator_class": lambda: DynamicCollator(
             "huawei-noah/TinyBERT_General_4L_312D", "apple/mobilevit-small"
         ),
@@ -472,7 +472,7 @@ experiment_configs = {
         "batch_size": 40,
     },
     "tinybert_deit": {
-        "model_class": HybridMMTDTextTrainable,
+        "model_class": GeneralizedMMTD,
         "collator_class": lambda: DynamicCollator(
             "huawei-noah/TinyBERT_General_4L_312D", "facebook/deit-base-patch16-224"
         ),
@@ -484,7 +484,7 @@ experiment_configs = {
         "batch_size": 40,
     },
     "mobilebert_vit-tiny": {
-        "model_class": HybridMMTDTextTrainable,
+        "model_class": GeneralizedMMTD,
         "collator_class": lambda: DynamicCollator(
             "google/mobilebert-uncased", "WinKawaks/vit-tiny-patch16-224"
         ),
@@ -495,7 +495,7 @@ experiment_configs = {
         "batch_size": 40,
     },
     "distilbert_vit-tiny": {
-        "model_class": HybridMMTDTextTrainable,
+        "model_class": GeneralizedMMTD,
         "collator_class": lambda: DynamicCollator(
             "distilbert-base-multilingual-cased", "WinKawaks/vit-tiny-patch16-224"
         ),
