@@ -187,9 +187,12 @@ def evaluate_model(model, dataloader, device):
             total_loss += loss.item()
 
     accuracy = accuracy_score(all_labels, all_predictions)
+    precision = precision_score(all_labels, all_predictions, average="weighted")
+    recall = recall_score(all_labels, all_predictions, average="weighted")
+    f1 = f1_score(all_labels, all_predictions, average="weighted")
     avg_loss = total_loss / len(dataloader)
 
-    return accuracy, avg_loss, all_predictions, all_labels
+    return accuracy, precision, recall, f1, avg_loss, all_predictions, all_labels
 
 
 def train_model(
@@ -266,7 +269,7 @@ def train_model(
         train_accuracies.append(train_accuracy)
 
         # 검증 단계
-        val_accuracy, val_loss, _, _ = evaluate_model(model, val_dataloader, device)
+        val_accuracy, val_precision, val_recall, val_f1, val_loss, _, _ = evaluate_model(model, val_dataloader, device)
         val_accuracies.append(val_accuracy)
         val_losses.append(val_loss)
 
@@ -274,6 +277,9 @@ def train_model(
         print(f"Train Accuracy: {train_accuracy:.4f}")
         print(f"Val Loss: {val_loss:.4f}")
         print(f"Val Accuracy: {val_accuracy:.4f}")
+        print(f"Val Precision: {val_precision:.4f}")
+        print(f"Val Recall: {val_recall:.4f}")
+        print(f"Val F1-Score: {val_f1:.4f}")
 
         # 최고 성능 모델 저장
         if val_accuracy > best_val_accuracy:
@@ -640,14 +646,9 @@ def train_single_fold(
     # 최종 평가
     print(f"\n📊 최종 평가 중...")
     model.load_state_dict(torch.load(checkpoint_path))
-    final_accuracy, final_loss, predictions, labels = evaluate_model(
+    final_accuracy, final_precision, final_recall, final_f1, final_loss, predictions, labels = evaluate_model(
         model, val_dataloader, device
     )
-
-    # 메트릭 계산
-    precision = precision_score(labels, predictions, average="weighted")
-    recall = recall_score(labels, predictions, average="weighted")
-    f1 = f1_score(labels, predictions, average="weighted")
 
     # 상세 분류 리포트
     report = classification_report(
@@ -682,9 +683,9 @@ def train_single_fold(
         },
         "metrics": {
             "accuracy": round(max(history["val_accuracy"]), 4),
-            "precision": round(precision, 4),
-            "recall": round(recall, 4),
-            "f1_score": round(f1, 4),
+            "precision": round(final_precision, 4),
+            "recall": round(final_recall, 4),
+            "f1_score": round(final_f1, 4),
         },
         "classification_report": report,
         "timestamp": datetime.now().isoformat(),
@@ -702,9 +703,9 @@ def train_single_fold(
     print(f"🎯 최고 검증 정확도: {history['best_val_accuracy']:.4f}")
     print(f"🎯 최종 테스트 정확도: {final_accuracy:.4f}")
     print(f"📉 최종 테스트 손실: {final_loss:.4f}")
-    print(f"🎯 Precision: {precision:.4f}")
-    print(f"🎯 Recall: {recall:.4f}")
-    print(f"🎯 F1-Score: {f1:.4f}")
+    print(f"🎯 Precision: {final_precision:.4f}")
+    print(f"🎯 Recall: {final_recall:.4f}")
+    print(f"🎯 F1-Score: {final_f1:.4f}")
     print(f"🏷️  Ham F1-Score: {report['ham']['f1-score']:.4f}")
     print(f"🏷️  Spam F1-Score: {report['spam']['f1-score']:.4f}")
     print(f"⏱️  훈련 시간: {training_time}초")
@@ -771,27 +772,40 @@ def main():
         print(f"{'='*80}")
 
         accuracies = [r["best_accuracy"] for r in all_results]
+        precisions = [r["metrics"]["precision"] for r in all_results]
+        recalls = [r["metrics"]["recall"] for r in all_results]
+        f1_scores = [r["metrics"]["f1_score"] for r in all_results]
+        
         mean_accuracy = np.mean(accuracies)
         std_accuracy = np.std(accuracies)
+        mean_precision = np.mean(precisions)
+        mean_recall = np.mean(recalls)
+        mean_f1 = np.mean(f1_scores)
 
         print(f"📈 평균 검증 정확도: {mean_accuracy:.4f} ± {std_accuracy:.4f}")
         print(f"🎯 최고 검증 정확도: {max(accuracies):.4f}")
         print(f"📉 최저 검증 정확도: {min(accuracies):.4f}")
+        print(f"📊 평균 Precision: {mean_precision:.4f}")
+        print(f"📊 평균 Recall: {mean_recall:.4f}")
+        print(f"📊 평균 F1-Score: {mean_f1:.4f}")
 
         print(
-            f"\n{'Fold':<6} {'Val Accuracy':<15} {'Test Accuracy':<15} {'Ham F1':<10} {'Spam F1':<10}"
+            f"\n{'Fold':<6} {'Val Acc':<10} {'Test Acc':<10} {'Precision':<10} {'Recall':<10} {'F1':<10} {'Ham F1':<10} {'Spam F1':<10}"
         )
-        print("-" * 70)
+        print("-" * 90)
 
         for result in all_results:
             fold = result["fold"]
             val_acc = result["best_accuracy"]
             test_acc = result["final_accuracy"]
+            precision = result["metrics"]["precision"]
+            recall = result["metrics"]["recall"]
+            f1 = result["metrics"]["f1_score"]
             ham_f1 = result["classification_report"]["ham"]["f1-score"]
             spam_f1 = result["classification_report"]["spam"]["f1-score"]
 
             print(
-                f"{fold:<6} {val_acc:<15.4f} {test_acc:<15.4f} {ham_f1:<10.4f} {spam_f1:<10.4f}"
+                f"{fold:<6} {val_acc:<10.4f} {test_acc:<10.4f} {precision:<10.4f} {recall:<10.4f} {f1:<10.4f} {ham_f1:<10.4f} {spam_f1:<10.4f}"
             )
 
         print(f"\n🎉 전체 {len(all_results)}/5 Folds 훈련 완료!")
