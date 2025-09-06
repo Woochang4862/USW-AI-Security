@@ -2,6 +2,7 @@ import os
 import torch
 import pandas as pd
 import numpy as np
+import random
 from transformers import (
     DistilBertTokenizerFast,
     ViTFeatureExtractor,
@@ -36,6 +37,17 @@ warnings.filterwarnings("ignore")
 os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TORCH_USE_CUDA_DSA"] = "1"
+
+
+def set_seed(seed=42):
+    """재현 가능한 실험을 위한 시드 설정"""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 # 경량화 모델 임포트
 from lightweight_models import GeneralizedMMTD
@@ -705,6 +717,10 @@ def train_single_fold(
 def main():
     """메인 훈련 함수"""
     import argparse
+
+    # 재현 가능한 실험을 위한 시드 설정
+    set_seed(42)
+    print("🌱 고정 시드 42로 설정 완료 - 재현 가능한 실험")
 
     parser = argparse.ArgumentParser(description="🤖 MMTD 모델 훈련 스크립트")
     parser.add_argument(
