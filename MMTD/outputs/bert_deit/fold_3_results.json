@@ -1,0 +1,73 @@
+{
+  "model_name": "Bert + Deit",
+  "fold": 3,
+  "final_accuracy": 0.6394,
+  "final_loss": 0.6054,
+  "best_accuracy": 0.6394,
+  "best_loss": 0.6054,
+  "epochs_trained": 3,
+  "training_time_seconds": 1854,
+  "model_size_mb": 771.1698455810547,
+  "parameters": {
+    "learning_rate": 0.0005,
+    "batch_size": 40,
+    "weight_decay": 0.01,
+    "warmup_steps": 183
+  },
+  "history": {
+    "train_loss": [
+      0.637,
+      0.6645,
+      0.6439
+    ],
+    "train_accuracy": [
+      0.6222,
+      0.5981,
+      0.6277
+    ],
+    "val_loss": [
+      0.6658,
+      0.6629,
+      0.6054
+    ],
+    "val_accuracy": [
+      0.6162,
+      0.6257,
+      0.6394
+    ]
+  },
+  "metrics": {
+    "accuracy": 0.6394,
+    "precision": 0.6461,
+    "recall": 0.6394,
+    "f1_score": 0.6377
+  },
+  "classification_report": {
+    "ham": {
+      "precision": 0.682545731707317,
+      "recall": 0.566055625790139,
+      "f1-score": 0.6188666205943331,
+      "support": 3164.0
+    },
+    "spam": {
+      "precision": 0.6070406410990269,
+      "recall": 0.7180094786729858,
+      "f1-score": 0.6578784119106699,
+      "support": 2954.0
+    },
+    "accuracy": 0.6394246485779667,
+    "macro avg": {
+      "precision": 0.644793186403172,
+      "recall": 0.6420325522315624,
+      "f1-score": 0.6383725162525015,
+      "support": 6118.0
+    },
+    "weighted avg": {
+      "precision": 0.6460890403609801,
+      "recall": 0.6394246485779667,
+      "f1-score": 0.6377029774999328,
+      "support": 6118.0
+    }
+  },
+  "timestamp": "2025-09-07T12:54:20.235624"
+}

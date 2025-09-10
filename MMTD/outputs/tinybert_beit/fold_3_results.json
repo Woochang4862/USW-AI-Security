@@ -1,0 +1,73 @@
+{
+  "model_name": "Tinybert + Beit",
+  "fold": 3,
+  "final_accuracy": 0.7158,
+  "final_loss": 0.5277,
+  "best_accuracy": 0.7158,
+  "best_loss": 0.5277,
+  "epochs_trained": 3,
+  "training_time_seconds": 1303,
+  "model_size_mb": 409.04371643066406,
+  "parameters": {
+    "learning_rate": 0.0005,
+    "batch_size": 40,
+    "weight_decay": 0.01,
+    "warmup_steps": 183
+  },
+  "history": {
+    "train_loss": [
+      0.6575,
+      0.6266,
+      0.5867
+    ],
+    "train_accuracy": [
+      0.6001,
+      0.6435,
+      0.6776
+    ],
+    "val_loss": [
+      0.6022,
+      0.607,
+      0.5277
+    ],
+    "val_accuracy": [
+      0.6662,
+      0.6582,
+      0.7158
+    ]
+  },
+  "metrics": {
+    "accuracy": 0.7158,
+    "precision": 0.7161,
+    "recall": 0.7158,
+    "f1_score": 0.7158
+  },
+  "classification_report": {
+    "ham": {
+      "precision": 0.7302100161550888,
+      "recall": 0.7142857142857143,
+      "f1-score": 0.7221600894711614,
+      "support": 3164.0
+    },
+    "spam": {
+      "precision": 0.7009593119417797,
+      "recall": 0.7173324306025728,
+      "f1-score": 0.7090513635603145,
+      "support": 2954.0
+    },
+    "accuracy": 0.7157567832625041,
+    "macro avg": {
+      "precision": 0.7155846640484342,
+      "recall": 0.7158090724441435,
+      "f1-score": 0.715605726515738,
+      "support": 6118.0
+    },
+    "weighted avg": {
+      "precision": 0.7160866784228046,
+      "recall": 0.7157567832625041,
+      "f1-score": 0.7158307046492193,
+      "support": 6118.0
+    }
+  },
+  "timestamp": "2025-09-08T01:01:49.379496"
+}

@@ -1,0 +1,177 @@
+{
+  "model_info": {
+    "checkpoint_path": "outputs/tinybert_vit-tiny/best_model.pth",
+    "model_config": {
+      "model_type": "generalized",
+      "text_encoder_cls": "BertForSequenceClassification",
+      "image_encoder_cls": "ViTForImageClassification",
+      "text_model": "huawei-noah/TinyBERT_General_4L_312D",
+      "image_model": "WinKawaks/vit-tiny-patch16-224",
+      "combination": "tinybert_vit-tiny"
+    },
+    "device": "cpu"
+  },
+  "performance_stats": {
+    "total_time": 3.272434949874878,
+    "preprocessing_time": 0,
+    "model_inference_time": 0,
+    "postprocessing_time": 0,
+    "memory_usage": {
+      "start_gb": 10.746566772460938,
+      "peak_gb": 10.91546630859375,
+      "end_gb": 10.873245239257812,
+      "increase_gb": 0.126678466796875
+    },
+    "per_sample_stats": {
+      "count": 7,
+      "avg_time": 0.04265172140938895,
+      "min_time": 0.03230476379394531,
+      "max_time": 0.07060098648071289,
+      "std_time": 0.014792034561315582,
+      "total_samples_time": 0.29856204986572266
+    },
+    "detailed_per_sample": [
+      {
+        "sample_idx": 0,
+        "time": 0.0367581844329834
+      },
+      {
+        "sample_idx": 1,
+        "time": 0.06047987937927246
+      },
+      {
+        "sample_idx": 2,
+        "time": 0.07060098648071289
+      },
+      {
+        "sample_idx": 3,
+        "time": 0.03282523155212402
+      },
+      {
+        "sample_idx": 4,
+        "time": 0.032900094985961914
+      },
+      {
+        "sample_idx": 5,
+        "time": 0.03230476379394531
+      },
+      {
+        "sample_idx": 6,
+        "time": 0.032692909240722656
+      }
+    ]
+  },
+  "predictions": [
+    {
+      "input": {
+        "text": "Copy DVD Movies?\n\nYes! Copy and burn your own DVD movies and video with a CD-R Drive.\n\n* Order by Se...",
+        "image_path": "DATA/email_data/pics/spam/0306.jpg",
+        "true_label": "unknown"
+      },
+      "prediction": {
+        "class": "SPAM",
+        "confidence": 0.9925854802131653,
+        "probabilities": {
+          "HAM": 0.007414550986140966,
+          "SPAM": 0.9925854802131653
+        }
+      }
+    },
+    {
+      "input": {
+        "text": "-----Original Message-----\nFrom: \"코코도르 공식 온라인몰\"<cocoadmin@cocodor.com>\nTo: <chad76@naver.com>;\nCc:\nS...",
+        "image_path": "코코도르.png",
+        "true_label": "unknown"
+      },
+      "prediction": {
+        "class": "SPAM",
+        "confidence": 0.9916859269142151,
+        "probabilities": {
+          "HAM": 0.008314103819429874,
+          "SPAM": 0.9916859269142151
+        }
+      }
+    },
+    {
+      "input": {
+        "text": "안녕하세요, 김지훈입니다.\n\n지난주에 요청하신 보고서를 첨부해드립니다. 혹시 추가로 필요한 자료나 수정사항 있으시면 언제든 말씀해주세요.\n\n감사합니다.\n\n- 김지훈 드림",
+        "image_path": "지연제출.png",
+        "true_label": "unknown"
+      },
+      "prediction": {
+        "class": "SPAM",
+        "confidence": 0.9887813329696655,
+        "probabilities": {
+          "HAM": 0.01121870893985033,
+          "SPAM": 0.9887813329696655
+        }
+      }
+    },
+    {
+      "input": {
+        "text": "스팸일경우 이미지, 링크 표시\n편*리*하게 구매하세요\n유통마진 빠진 최저가\n한한약국 1+1이벤 비밀당일배송 365일 주문가능\n벤트 클릭이동",
+        "image_path": "IMG_1290.jpg",
+        "true_label": "unknown"
+      },
+      "prediction": {
+        "class": "SPAM",
+        "confidence": 0.9881293773651123,
+        "probabilities": {
+          "HAM": 0.01187064778059721,
+          "SPAM": 0.9881293773651123
+        }
+      }
+    },
+    {
+      "input": {
+        "text": "用于期权定价的星期五棕色包 大家好 ， 今天我们有格兰特马森在我们的期权定价研讨会系列中发表演讲。 格兰特的题目是“风险边际价值”。将于中午 12 点举行19 c 2 。 我们感谢您的参与 。 紫民路...",
+        "image_path": "DATA/email_data/pics/ham/M1406.jpg",
+        "true_label": "unknown"
+      },
+      "prediction": {
+        "class": "HAM",
+        "confidence": 0.9883544445037842,
+        "probabilities": {
+          "HAM": 0.9883544445037842,
+          "SPAM": 0.011645594611763954
+        }
+      }
+    },
+    {
+      "input": {
+        "text": "🔥HOT DEAL! Limited Time Offer!🔥\n\nGet Your FREE iPhone 14 Pro Now!\nCongratulations! You've been selec...",
+        "image_path": "DATA/email_data/pics/spam/0306.jpg",
+        "true_label": "unknown"
+      },
+      "prediction": {
+        "class": "SPAM",
+        "confidence": 0.9925179481506348,
+        "probabilities": {
+          "HAM": 0.007481989450752735,
+          "SPAM": 0.9925179481506348
+        }
+      }
+    },
+    {
+      "input": {
+        "text": "Dear Team,\n\nI hope this email finds you well. I wanted to follow up on the project timeline we discu...",
+        "image_path": "DATA/email_data/pics/ham/0001.jpg",
+        "true_label": "unknown"
+      },
+      "prediction": {
+        "class": "HAM",
+        "confidence": 0.8613007664680481,
+        "probabilities": {
+          "HAM": 0.8613007664680481,
+          "SPAM": 0.1386992633342743
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total_samples": 7,
+    "spam_count": 5,
+    "ham_count": 2,
+    "avg_confidence": 0.9719078966549465
+  }
+}

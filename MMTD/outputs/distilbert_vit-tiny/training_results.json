@@ -1,0 +1,52 @@
+{
+  "fold": 1,
+  "model_type": "lightweight",
+  "model_name": "GeneralizedMMTD_distilbert_vit-tiny",
+  "final_accuracy": 0.9841396988144825,
+  "final_loss": 0.07041408432818645,
+  "best_val_accuracy": 0.9841396988144825,
+  "classification_report": {
+    "ham": {
+      "precision": 0.9801387137452712,
+      "recall": 0.9885532591414944,
+      "f1-score": 0.9843280037992718,
+      "support": 3145.0
+    },
+    "spam": {
+      "precision": 0.9882736156351791,
+      "recall": 0.9796577332902809,
+      "f1-score": 0.9839468136857468,
+      "support": 3097.0
+    },
+    "accuracy": 0.9841396988144825,
+    "macro avg": {
+      "precision": 0.9842061646902251,
+      "recall": 0.9841054962158877,
+      "f1-score": 0.9841374087425092,
+      "support": 6242.0
+    },
+    "weighted avg": {
+      "precision": 0.9841748866310521,
+      "recall": 0.9841396988144825,
+      "f1-score": 0.9841388743885722,
+      "support": 6242.0
+    }
+  },
+  "training_history": {
+    "train_losses": [
+      0.19068464529718465
+    ],
+    "val_accuracies": [
+      0.9841396988144825
+    ],
+    "val_losses": [
+      0.07041408432818645
+    ],
+    "best_val_accuracy": 0.9841396988144825
+  },
+  "hyperparameters": {
+    "num_epochs": 1,
+    "batch_size": 32,
+    "learning_rate": 2e-05
+  }
+}

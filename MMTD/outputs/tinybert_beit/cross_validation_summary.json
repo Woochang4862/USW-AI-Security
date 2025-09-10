@@ -1,0 +1,23 @@
+{
+  "model_name": "TinyBert + Beit",
+  "model_size_mb": 409.2,
+  "cross_validation_results": {
+    "mean_accuracy": 0.8608,
+    "std_accuracy": 0.0201,
+    "min_accuracy": 0.8345,
+    "max_accuracy": 0.8813,
+    "fold_accuracies": [
+      0.8386,
+      0.8708,
+      0.8813,
+      0.8788,
+      0.8345
+    ]
+  },
+  "training_summary": {
+    "total_folds": 5,
+    "epochs_per_fold": 10,
+    "avg_training_time_minutes": 3.3
+  },
+  "timestamp": "2025-06-20T01:38:37.156635"
+}

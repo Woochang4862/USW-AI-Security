@@ -1,0 +1,2 @@
+Model,Checkpoint,Mean_Inference_Time_ms,Std_Inference_Time_ms,Min_Inference_Time_ms,Max_Inference_Time_ms,Median_Inference_Time_ms,Q25_Inference_Time_ms,Q75_Inference_Time_ms,Model_Size_MB,Total_Parameters,Samples_Processed,Total_Time_Seconds,Throughput_Samples_Per_Second
+MMTD (BERT+BEiT),checkpoints/fold5/checkpoint-939/pytorch_model.bin,2.961224406923252,0.04020644858646598,2.9397904872894287,6.47205114364624,2.960801124572754,2.956867218017578,2.964794635772705,1028.9177474975586,269724614,31212,92.42573618888855,337.6981486651368

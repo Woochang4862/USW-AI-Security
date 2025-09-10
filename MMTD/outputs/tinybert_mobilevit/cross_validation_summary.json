@@ -1,0 +1,23 @@
+{
+  "model_name": "TinyBert + MobileViT",
+  "model_size_mb": 76.6,
+  "cross_validation_results": {
+    "mean_accuracy": 0.8111,
+    "std_accuracy": 0.0254,
+    "min_accuracy": 0.7822,
+    "max_accuracy": 0.846,
+    "fold_accuracies": [
+      0.7845,
+      0.7822,
+      0.8324,
+      0.846,
+      0.8103
+    ]
+  },
+  "training_summary": {
+    "total_folds": 5,
+    "epochs_per_fold": 10,
+    "avg_training_time_minutes": 2.6
+  },
+  "timestamp": "2025-06-20T01:38:37.157771"
+}

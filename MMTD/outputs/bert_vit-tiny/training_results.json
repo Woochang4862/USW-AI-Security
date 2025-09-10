@@ -1,0 +1,52 @@
+{
+  "fold": 1,
+  "model_type": "lightweight",
+  "model_name": "HybridMMTD_bert_vit-tiny",
+  "final_accuracy": 0.8836911246395386,
+  "final_loss": 0.22228802298908407,
+  "best_val_accuracy": 0.8836911246395386,
+  "classification_report": {
+    "ham": {
+      "precision": 0.8966874385044277,
+      "recall": 0.8693163751987282,
+      "f1-score": 0.8827897965773329,
+      "support": 3145.0
+    },
+    "spam": {
+      "precision": 0.8712809270278735,
+      "recall": 0.8982886664514046,
+      "f1-score": 0.8845786963434022,
+      "support": 3097.0
+    },
+    "accuracy": 0.8836911246395386,
+    "macro avg": {
+      "precision": 0.8839841827661505,
+      "recall": 0.8838025208250664,
+      "f1-score": 0.8836842464603676,
+      "support": 6242.0
+    },
+    "weighted avg": {
+      "precision": 0.8840818688083546,
+      "recall": 0.8836911246395386,
+      "f1-score": 0.8836773682811966,
+      "support": 6242.0
+    }
+  },
+  "training_history": {
+    "train_losses": [
+      0.34558111800312535
+    ],
+    "val_accuracies": [
+      0.8836911246395386
+    ],
+    "val_losses": [
+      0.22228802298908407
+    ],
+    "best_val_accuracy": 0.8836911246395386
+  },
+  "hyperparameters": {
+    "num_epochs": 1,
+    "batch_size": 32,
+    "learning_rate": 2e-05
+  }
+}

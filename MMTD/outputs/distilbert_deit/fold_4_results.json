@@ -1,0 +1,73 @@
+{
+  "model_name": "Distilbert + Deit",
+  "fold": 4,
+  "final_accuracy": 0.8916,
+  "final_loss": 0.1888,
+  "best_accuracy": 0.8916,
+  "best_loss": 0.1888,
+  "epochs_trained": 3,
+  "training_time_seconds": 1859,
+  "model_size_mb": 846.4579238891602,
+  "parameters": {
+    "learning_rate": 0.0005,
+    "batch_size": 40,
+    "weight_decay": 0.01,
+    "warmup_steps": 183
+  },
+  "history": {
+    "train_loss": [
+      0.3242,
+      0.2314,
+      0.19
+    ],
+    "train_accuracy": [
+      0.8341,
+      0.8674,
+      0.8887
+    ],
+    "val_loss": [
+      0.2447,
+      0.226,
+      0.1888
+    ],
+    "val_accuracy": [
+      0.8318,
+      0.8692,
+      0.8916
+    ]
+  },
+  "metrics": {
+    "accuracy": 0.8916,
+    "precision": 0.8917,
+    "recall": 0.8916,
+    "f1_score": 0.8915
+  },
+  "classification_report": {
+    "ham": {
+      "precision": 0.890053924505692,
+      "recall": 0.9093970003060912,
+      "f1-score": 0.8996214988644966,
+      "support": 3267.0
+    },
+    "spam": {
+      "precision": 0.8935251798561151,
+      "recall": 0.8712732374605402,
+      "f1-score": 0.8822589238145978,
+      "support": 2851.0
+    },
+    "accuracy": 0.8916312520431514,
+    "macro avg": {
+      "precision": 0.8917895521809036,
+      "recall": 0.8903351188833157,
+      "f1-score": 0.8909402113395473,
+      "support": 6118.0
+    },
+    "weighted avg": {
+      "precision": 0.8916715363075972,
+      "recall": 0.8916312520431514,
+      "f1-score": 0.8915305048358497,
+      "support": 6118.0
+    }
+  },
+  "timestamp": "2025-09-08T11:17:30.003262"
+}

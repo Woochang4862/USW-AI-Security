@@ -265,8 +265,16 @@ class GeneralizedMMTD(torch.nn.Module):
         self.num_labels = 2
 
     def forward(self, input_ids, attention_mask, pixel_values, labels=None, token_type_ids=None):
-        device = input_ids.device if input_ids is not None else pixel_values.device
-        text_outputs = self.text_encoder(input_ids=input_ids, attention_mask=attention_mask)
+        # 텍스트 인코딩 - DistilBERT는 token_type_ids를 지원하지 않으므로 체크
+        text_kwargs = {
+            'input_ids': input_ids,
+            'attention_mask': attention_mask
+        }
+        # token_type_ids가 있고 모델이 지원하는 경우에만 추가 (BERT 계열만)
+        if token_type_ids is not None and hasattr(self.text_encoder, 'bert'):
+            text_kwargs['token_type_ids'] = token_type_ids
+        
+        text_outputs = self.text_encoder(**text_kwargs)
         image_outputs = self.image_encoder(pixel_values=pixel_values)
         text_last_hidden_state = text_outputs.hidden_states[-1]
         image_last_hidden_state = image_outputs.hidden_states[-1]

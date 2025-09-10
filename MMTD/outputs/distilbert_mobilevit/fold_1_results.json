@@ -1,0 +1,73 @@
+{
+  "model_name": "Distilbert + Mobilevit",
+  "fold": 1,
+  "final_accuracy": 0.8472,
+  "final_loss": 0.4037,
+  "best_accuracy": 0.8553,
+  "best_loss": 0.3944,
+  "epochs_trained": 3,
+  "training_time_seconds": 1658,
+  "model_size_mb": 537.5093154907227,
+  "parameters": {
+    "learning_rate": 0.0005,
+    "batch_size": 40,
+    "weight_decay": 0.01,
+    "warmup_steps": 183
+  },
+  "history": {
+    "train_loss": [
+      0.5006,
+      0.4376,
+      0.4076
+    ],
+    "train_accuracy": [
+      0.7592,
+      0.8104,
+      0.8461
+    ],
+    "val_loss": [
+      0.4977,
+      0.3944,
+      0.4037
+    ],
+    "val_accuracy": [
+      0.7686,
+      0.8553,
+      0.8472
+    ]
+  },
+  "metrics": {
+    "accuracy": 0.8553,
+    "precision": 0.8482,
+    "recall": 0.8472,
+    "f1_score": 0.8472
+  },
+  "classification_report": {
+    "ham": {
+      "precision": 0.869,
+      "recall": 0.8278818672594475,
+      "f1-score": 0.8479427549194991,
+      "support": 3149.0
+    },
+    "spam": {
+      "precision": 0.826170622193714,
+      "recall": 0.8676321993937353,
+      "f1-score": 0.8463939543288976,
+      "support": 2969.0
+    },
+    "accuracy": 0.847172278522393,
+    "macro avg": {
+      "precision": 0.847585311096857,
+      "recall": 0.8477570333265914,
+      "f1-score": 0.8471683546241984,
+      "support": 6118.0
+    },
+    "weighted avg": {
+      "precision": 0.8482153607867173,
+      "recall": 0.847172278522393,
+      "f1-score": 0.847191138549199,
+      "support": 6118.0
+    }
+  },
+  "timestamp": "2025-09-07T09:28:59.810038"
+}

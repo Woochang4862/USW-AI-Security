@@ -1,0 +1,166 @@
+🚀 MMTD 모델 실험 백그라운드 순차 실행 시작
+📅 시작 시간: Sun 07 Sep 2025 09:01:17 AM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+📝 마스터 로그: logs/master_experiment_20250907_090117.log
+
+🎯 실험 1/16: distilbert_mobilevit
+📝 로그 파일: logs/train_distilbert_mobilevit_20250907_090117.log
+⏰ 시작 시간: Sun 07 Sep 2025 09:01:17 AM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 994629
+⏳ 실험 완료 대기 중...
+✅ 실험 distilbert_mobilevit 완료 (종료 코드: 0)
+⏰ 완료 시간: Sun 07 Sep 2025 11:20:37 AM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 2/16: bert_deit
+📝 로그 파일: logs/train_bert_deit_20250907_112047.log
+⏰ 시작 시간: Sun 07 Sep 2025 11:20:47 AM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 998661
+⏳ 실험 완료 대기 중...
+✅ 실험 bert_deit 완료 (종료 코드: 0)
+⏰ 완료 시간: Sun 07 Sep 2025 01:56:14 PM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 3/16: bert_mobilevit
+📝 로그 파일: logs/train_bert_mobilevit_20250907_135624.log
+⏰ 시작 시간: Sun 07 Sep 2025 01:56:24 PM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 1009659
+⏳ 실험 완료 대기 중...
+✅ 실험 bert_mobilevit 완료 (종료 코드: 0)
+⏰ 완료 시간: Sun 07 Sep 2025 04:57:24 PM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 4/16: bert_vit-tiny
+📝 로그 파일: logs/train_bert_vit-tiny_20250907_165734.log
+⏰ 시작 시간: Sun 07 Sep 2025 04:57:34 PM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 1088243
+⏳ 실험 완료 대기 중...
+✅ 실험 bert_vit-tiny 완료 (종료 코드: 0)
+⏰ 완료 시간: Sun 07 Sep 2025 06:53:14 PM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 5/16: mobilebert_beit
+📝 로그 파일: logs/train_mobilebert_beit_20250907_185324.log
+⏰ 시작 시간: Sun 07 Sep 2025 06:53:24 PM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 1212288
+⏳ 실험 완료 대기 중...
+✅ 실험 mobilebert_beit 완료 (종료 코드: 0)
+⏰ 완료 시간: Sun 07 Sep 2025 09:41:37 PM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 6/16: distilbert_beit
+📝 로그 파일: logs/train_distilbert_beit_20250907_214147.log
+⏰ 시작 시간: Sun 07 Sep 2025 09:41:47 PM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 1305965
+⏳ 실험 완료 대기 중...
+✅ 실험 distilbert_beit 완료 (종료 코드: 0)
+⏰ 완료 시간: Sun 07 Sep 2025 11:55:55 PM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 7/16: tinybert_beit
+📝 로그 파일: logs/train_tinybert_beit_20250907_235605.log
+⏰ 시작 시간: Sun 07 Sep 2025 11:56:05 PM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 1371766
+⏳ 실험 완료 대기 중...
+✅ 실험 tinybert_beit 완료 (종료 코드: 0)
+⏰ 완료 시간: Mon 08 Sep 2025 01:45:30 AM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 8/16: tinybert_vit-tiny
+📝 로그 파일: logs/train_tinybert_vit-tiny_20250908_014540.log
+⏰ 시작 시간: Mon 08 Sep 2025 01:45:40 AM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 1375590
+⏳ 실험 완료 대기 중...
+✅ 실험 tinybert_vit-tiny 완료 (종료 코드: 0)
+⏰ 완료 시간: Mon 08 Sep 2025 03:13:17 AM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 9/16: mobilebert_mobilevit
+📝 로그 파일: logs/train_mobilebert_mobilevit_20250908_031327.log
+⏰ 시작 시간: Mon 08 Sep 2025 03:13:27 AM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 1377472
+⏳ 실험 완료 대기 중...
+✅ 실험 mobilebert_mobilevit 완료 (종료 코드: 0)
+⏰ 완료 시간: Mon 08 Sep 2025 06:06:15 AM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 10/16: mobilebert_deit
+📝 로그 파일: logs/train_mobilebert_deit_20250908_060625.log
+⏰ 시작 시간: Mon 08 Sep 2025 06:06:26 AM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 1378220
+⏳ 실험 완료 대기 중...
+✅ 실험 mobilebert_deit 완료 (종료 코드: 0)
+⏰ 완료 시간: Mon 08 Sep 2025 09:13:39 AM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 11/16: distilbert_deit
+📝 로그 파일: logs/train_distilbert_deit_20250908_091349.log
+⏰ 시작 시간: Mon 08 Sep 2025 09:13:49 AM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 1380340
+⏳ 실험 완료 대기 중...
+✅ 실험 distilbert_deit 완료 (종료 코드: 0)
+⏰ 완료 시간: Mon 08 Sep 2025 11:57:37 AM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 12/16: bert_beit_pretrained
+📝 로그 파일: logs/train_bert_beit_pretrained_20250908_115747.log
+⏰ 시작 시간: Mon 08 Sep 2025 11:57:47 AM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 1451200
+⏳ 실험 완료 대기 중...
+✅ 실험 bert_beit_pretrained 완료 (종료 코드: 0)
+⏰ 완료 시간: Mon 08 Sep 2025 11:58:27 AM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 13/16: tinybert_mobilevit
+📝 로그 파일: logs/train_tinybert_mobilevit_20250908_115837.log
+⏰ 시작 시간: Mon 08 Sep 2025 11:58:37 AM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 1451596
+⏳ 실험 완료 대기 중...
+✅ 실험 tinybert_mobilevit 완료 (종료 코드: 0)
+⏰ 완료 시간: Mon 08 Sep 2025 04:25:14 PM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 14/16: tinybert_deit
+📝 로그 파일: logs/train_tinybert_deit_20250908_162524.log
+⏰ 시작 시간: Mon 08 Sep 2025 04:25:24 PM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 1513530
+⏳ 실험 완료 대기 중...
+✅ 실험 tinybert_deit 완료 (종료 코드: 0)
+⏰ 완료 시간: Mon 08 Sep 2025 06:36:18 PM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 15/16: mobilebert_vit-tiny
+📝 로그 파일: logs/train_mobilebert_vit-tiny_20250908_183628.log
+⏰ 시작 시간: Mon 08 Sep 2025 06:36:28 PM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 1532717
+⏳ 실험 완료 대기 중...
+✅ 실험 mobilebert_vit-tiny 완료 (종료 코드: 0)
+⏰ 완료 시간: Mon 08 Sep 2025 09:05:33 PM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+🎯 실험 16/16: distilbert_vit-tiny
+📝 로그 파일: logs/train_distilbert_vit-tiny_20250908_210543.log
+⏰ 시작 시간: Mon 08 Sep 2025 09:05:43 PM KST
+- analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 50
+🔄 프로세스 ID: 1535913
+⏳ 실험 완료 대기 중...
+✅ 실험 distilbert_vit-tiny 완료 (종료 코드: 0)
+⏰ 완료 시간: Mon 08 Sep 2025 10:59:23 PM KST
+= analyze_top3_performance.py bert.py checkpoints comprehensive_inference_benchmark.py DATA dit.py Email_dataset.py email_data.zip IMG_1290.jpg inference_benchmark_results inference_speed_comparison.py inference_vs_accuracy_plot.py lightweight_mmtd_real_inference.py lightweight_mmtd_real_inference_result.json lightweight_models.py logs main.py mmtd_inference_benchmark.py mmtd_real_inference.py models.py monitor_experiments.sh nohup.out outputs plot_model_performance.py 코코도르.png 지연제출.png __pycache__ real_data.json requirements.txt results robustness.py run_experiments_background.sh run_experiments.sh train_convnext_mmtd.py train_lightweight_model.py utils.py 60
+
+🎉 모든 실험 완료!
+📅 종료 시간: Mon 08 Sep 2025 10:59:33 PM KST
+📊 총 실험 수: 16
+
+📋 로그 파일들:
+-rw-r--r-- 1 jwc0706 lab    4102 Sep  8 11:58 logs/train_bert_beit_pretrained_20250908_115747.log
+-rw-r--r-- 1 jwc0706 lab 1919664 Sep  8 11:57 logs/train_distilbert_deit_20250908_091349.log
+-rw-r--r-- 1 jwc0706 lab 1919636 Sep  8 22:59 logs/train_distilbert_vit-tiny_20250908_210543.log
+-rw-r--r-- 1 jwc0706 lab 1918799 Sep  8 09:13 logs/train_mobilebert_deit_20250908_060625.log
+-rw-r--r-- 1 jwc0706 lab 1917807 Sep  8 06:06 logs/train_mobilebert_mobilevit_20250908_031327.log
+-rw-r--r-- 1 jwc0706 lab 1918882 Sep  8 21:05 logs/train_mobilebert_vit-tiny_20250908_183628.log
+-rw-r--r-- 1 jwc0706 lab 1919360 Sep  8 18:36 logs/train_tinybert_deit_20250908_162524.log
+-rw-r--r-- 1 jwc0706 lab 1918305 Sep  8 16:25 logs/train_tinybert_mobilevit_20250908_115837.log
+-rw-r--r-- 1 jwc0706 lab 1919438 Sep  8 03:13 logs/train_tinybert_vit-tiny_20250908_014540.log
+
+📝 마스터 로그: logs/master_experiment_20250907_090117.log

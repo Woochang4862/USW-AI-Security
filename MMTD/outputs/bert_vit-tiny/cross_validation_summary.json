@@ -1,0 +1,23 @@
+{
+  "model_name": "Bert + ViT-Tiny",
+  "model_size_mb": 463.5,
+  "cross_validation_results": {
+    "mean_accuracy": 0.8837,
+    "std_accuracy": 0.0146,
+    "min_accuracy": 0.8663,
+    "max_accuracy": 0.9095,
+    "fold_accuracies": [
+      0.8875,
+      0.8763,
+      0.9095,
+      0.8789,
+      0.8663
+    ]
+  },
+  "training_summary": {
+    "total_folds": 5,
+    "epochs_per_fold": 10,
+    "avg_training_time_minutes": 4.8
+  },
+  "timestamp": "2025-06-20T01:38:37.150405"
+}

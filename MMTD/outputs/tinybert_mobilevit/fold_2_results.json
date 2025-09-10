@@ -1,0 +1,73 @@
+{
+  "model_name": "Tinybert + Mobilevit",
+  "fold": 2,
+  "final_accuracy": 0.9618,
+  "final_loss": 0.1845,
+  "best_accuracy": 0.9618,
+  "best_loss": 0.1845,
+  "epochs_trained": 3,
+  "training_time_seconds": 3316,
+  "model_size_mb": 76.02503204345703,
+  "parameters": {
+    "learning_rate": 0.0005,
+    "batch_size": 40,
+    "weight_decay": 0.01,
+    "warmup_steps": 183
+  },
+  "history": {
+    "train_loss": [
+      0.4126,
+      0.2411,
+      0.1807
+    ],
+    "train_accuracy": [
+      0.8388,
+      0.949,
+      0.9729
+    ],
+    "val_loss": [
+      0.2871,
+      0.2091,
+      0.1845
+    ],
+    "val_accuracy": [
+      0.9219,
+      0.9501,
+      0.9618
+    ]
+  },
+  "metrics": {
+    "accuracy": 0.9618,
+    "precision": 0.9621,
+    "recall": 0.9618,
+    "f1_score": 0.9617
+  },
+  "classification_report": {
+    "ham": {
+      "precision": 0.95,
+      "recall": 0.9766922094508301,
+      "f1-score": 0.9631612090680101,
+      "support": 3132.0
+    },
+    "spam": {
+      "precision": 0.9748102139406487,
+      "recall": 0.9460817146684528,
+      "f1-score": 0.960231135282121,
+      "support": 2986.0
+    },
+    "accuracy": 0.9617522066034652,
+    "macro avg": {
+      "precision": 0.9624051069703243,
+      "recall": 0.9613869620596415,
+      "f1-score": 0.9616961721750655,
+      "support": 6118.0
+    },
+    "weighted avg": {
+      "precision": 0.9621090714002576,
+      "recall": 0.9617522066034652,
+      "f1-score": 0.9617311338269731,
+      "support": 6118.0
+    }
+  },
+  "timestamp": "2025-09-08T13:48:42.041566"
+}
