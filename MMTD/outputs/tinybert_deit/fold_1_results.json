@@ -1,100 +1,73 @@
 {
-  "model_name": "TinyBert + DeiT",
+  "model_name": "Tinybert + Deit",
   "fold": 1,
-  "final_accuracy": 0.9202,
-  "final_loss": 0.076,
-  "best_accuracy": 0.9202,
-  "best_loss": 0.076,
-  "epochs_trained": 10,
-  "training_time_seconds": 207,
-  "model_size_mb": 386.7,
+  "final_accuracy": 0.8944,
+  "final_loss": 0.1811,
+  "best_accuracy": 0.8944,
+  "best_loss": 0.1811,
+  "epochs_trained": 3,
+  "training_time_seconds": 1576,
+  "model_size_mb": 384.97364044189453,
   "parameters": {
-    "learning_rate": 2e-05,
-    "batch_size": 16,
+    "learning_rate": 0.0005,
+    "batch_size": 40,
     "weight_decay": 0.01,
-    "warmup_steps": 100
+    "warmup_steps": 183
   },
   "history": {
     "train_loss": [
-      0.7619,
-      0.6214,
-      0.4076,
-      0.1705,
-      0.1518,
-      0.0535,
-      0.0449,
-      0.143,
-      0.0766,
-      0.1041
+      0.3612,
+      0.2306,
+      0.1874
     ],
     "train_accuracy": [
-      0.612,
-      0.7241,
-      0.8361,
-      0.9448,
-      0.9591,
-      0.9619,
-      0.9309,
-      0.9612,
-      0.9632,
-      0.9522
+      0.8116,
+      0.8724,
+      0.8925
     ],
     "val_loss": [
-      0.844,
-      0.671,
-      0.4064,
-      0.7014,
-      0.4544,
-      0.4667,
-      0.3402,
-      0.4349,
-      0.2641,
-      0.076
+      0.2914,
+      0.1944,
+      0.1811
     ],
     "val_accuracy": [
-      0.584,
-      0.6681,
-      0.7521,
-      0.6715,
-      0.7233,
-      0.7703,
-      0.821,
-      0.8305,
-      0.8764,
-      0.9202
+      0.8527,
+      0.8727,
+      0.8944
     ]
   },
   "metrics": {
-    "precision": 0.9251,
-    "recall": 0.9225,
-    "f1_score": 0.919
+    "accuracy": 0.8944,
+    "precision": 0.8944,
+    "recall": 0.8944,
+    "f1_score": 0.8944
   },
   "classification_report": {
     "ham": {
-      "precision": 0.9032,
-      "recall": 0.9231,
-      "f1-score": 0.9131,
-      "support": 194
+      "precision": 0.8986938515450781,
+      "recall": 0.8958399491902191,
+      "f1-score": 0.8972646310432572,
+      "support": 3149.0
     },
     "spam": {
-      "precision": 0.8987,
-      "recall": 0.9235,
-      "f1-score": 0.9109,
-      "support": 184
+      "precision": 0.8898959382343068,
+      "recall": 0.8928932300437857,
+      "f1-score": 0.8913920645595158,
+      "support": 2969.0
     },
-    "accuracy": 0.9202,
+    "accuracy": 0.8944099378881988,
     "macro avg": {
-      "precision": 0.901,
-      "recall": 0.9233,
-      "f1-score": 0.912,
-      "support": 362
+      "precision": 0.8942948948896925,
+      "recall": 0.8943665896170024,
+      "f1-score": 0.8943283478013865,
+      "support": 6118.0
     },
     "weighted avg": {
-      "precision": 0.9064,
-      "recall": 0.9201,
-      "f1-score": 0.9057,
-      "support": 405
+      "precision": 0.8944243182630122,
+      "recall": 0.8944099378881988,
+      "f1-score": 0.8944147373050703,
+      "support": 6118.0
     }
   },
-  "timestamp": "2025-06-17T01:51:30.657579"
+  "timestamp": "2025-09-08T16:51:44.553129"
 }

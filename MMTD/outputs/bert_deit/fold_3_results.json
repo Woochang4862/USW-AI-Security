@@ -1,100 +1,73 @@
 {
-  "model_name": "Bert + DeiT",
+  "model_name": "Bert + Deit",
   "fold": 3,
-  "final_accuracy": 0.9051,
-  "final_loss": 0.1384,
-  "best_accuracy": 0.9051,
-  "best_loss": 0.1384,
-  "epochs_trained": 10,
-  "training_time_seconds": 559,
-  "model_size_mb": 771.3,
+  "final_accuracy": 0.6394,
+  "final_loss": 0.6054,
+  "best_accuracy": 0.6394,
+  "best_loss": 0.6054,
+  "epochs_trained": 3,
+  "training_time_seconds": 1854,
+  "model_size_mb": 771.1698455810547,
   "parameters": {
-    "learning_rate": 2e-05,
-    "batch_size": 16,
+    "learning_rate": 0.0005,
+    "batch_size": 40,
     "weight_decay": 0.01,
-    "warmup_steps": 100
+    "warmup_steps": 183
   },
   "history": {
     "train_loss": [
-      0.8668,
-      0.6582,
-      0.3176,
-      0.1827,
-      0.153,
-      0.0551,
-      0.2157,
-      0.1577,
-      0.0207,
-      0.2288
+      0.637,
+      0.6645,
+      0.6439
     ],
     "train_accuracy": [
-      0.608,
-      0.716,
-      0.824,
-      0.9437,
-      0.9299,
-      0.9438,
-      0.9353,
-      0.9362,
-      0.9447,
-      0.9308
+      0.6222,
+      0.5981,
+      0.6277
     ],
     "val_loss": [
-      0.7382,
-      0.6691,
-      0.4365,
-      0.6874,
-      0.5289,
-      0.4991,
-      0.5023,
-      0.4214,
-      0.293,
-      0.1384
+      0.6658,
+      0.6629,
+      0.6054
     ],
     "val_accuracy": [
-      0.581,
-      0.662,
-      0.743,
-      0.6882,
-      0.6959,
-      0.7566,
-      0.7975,
-      0.8303,
-      0.8811,
-      0.9051
+      0.6162,
+      0.6257,
+      0.6394
     ]
   },
   "metrics": {
-    "precision": 0.9348,
-    "recall": 0.8862,
-    "f1_score": 0.9023
+    "accuracy": 0.6394,
+    "precision": 0.6461,
+    "recall": 0.6394,
+    "f1_score": 0.6377
   },
   "classification_report": {
     "ham": {
-      "precision": 0.8989,
-      "recall": 0.8937,
-      "f1-score": 0.8963,
-      "support": 193
+      "precision": 0.682545731707317,
+      "recall": 0.566055625790139,
+      "f1-score": 0.6188666205943331,
+      "support": 3164.0
     },
     "spam": {
-      "precision": 0.9297,
-      "recall": 0.8754,
-      "f1-score": 0.9017,
-      "support": 196
+      "precision": 0.6070406410990269,
+      "recall": 0.7180094786729858,
+      "f1-score": 0.6578784119106699,
+      "support": 2954.0
     },
-    "accuracy": 0.9051,
+    "accuracy": 0.6394246485779667,
     "macro avg": {
-      "precision": 0.9143,
-      "recall": 0.8846,
-      "f1-score": 0.899,
-      "support": 388
+      "precision": 0.644793186403172,
+      "recall": 0.6420325522315624,
+      "f1-score": 0.6383725162525015,
+      "support": 6118.0
     },
     "weighted avg": {
-      "precision": 0.9126,
-      "recall": 0.8757,
-      "f1-score": 0.9007,
-      "support": 372
+      "precision": 0.6460890403609801,
+      "recall": 0.6394246485779667,
+      "f1-score": 0.6377029774999328,
+      "support": 6118.0
     }
   },
-  "timestamp": "2025-06-15T01:51:30.649462"
+  "timestamp": "2025-09-07T12:54:20.235624"
 }

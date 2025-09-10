@@ -1,100 +1,73 @@
 {
-  "model_name": "Bert + MobileViT",
+  "model_name": "Bert + Mobilevit",
   "fold": 2,
-  "final_accuracy": 0.8134,
-  "final_loss": 0.3095,
-  "best_accuracy": 0.8134,
-  "best_loss": 0.3095,
-  "epochs_trained": 10,
-  "training_time_seconds": 251,
-  "model_size_mb": 462.5,
+  "final_accuracy": 0.8557,
+  "final_loss": 0.2864,
+  "best_accuracy": 0.8557,
+  "best_loss": 0.2864,
+  "epochs_trained": 3,
+  "training_time_seconds": 2170,
+  "model_size_mb": 462.2212371826172,
   "parameters": {
-    "learning_rate": 2e-05,
-    "batch_size": 16,
+    "learning_rate": 0.0005,
+    "batch_size": 40,
     "weight_decay": 0.01,
-    "warmup_steps": 100
+    "warmup_steps": 183
   },
   "history": {
     "train_loss": [
-      0.814,
-      0.5737,
-      0.4345,
-      0.3915,
-      0.3707,
-      0.4064,
-      0.2155,
-      0.3697,
-      0.3743,
-      0.3613
+      0.4697,
+      0.3458,
+      0.2924
     ],
     "train_accuracy": [
-      0.5836,
-      0.6671,
-      0.7507,
-      0.8485,
-      0.8304,
-      0.8361,
-      0.856,
-      0.8456,
-      0.8485,
-      0.8263
+      0.7586,
+      0.8266,
+      0.8542
     ],
     "val_loss": [
-      0.8217,
-      0.6731,
-      0.6756,
-      0.8282,
-      0.7309,
-      0.7081,
-      0.507,
-      0.4236,
-      0.4031,
-      0.3095
+      0.3795,
+      0.3137,
+      0.2864
     ],
     "val_accuracy": [
-      0.5627,
-      0.6254,
-      0.688,
-      0.6219,
-      0.6278,
-      0.6588,
-      0.7207,
-      0.7473,
-      0.7861,
-      0.8134
+      0.7976,
+      0.8457,
+      0.8557
     ]
   },
   "metrics": {
-    "precision": 0.8401,
-    "recall": 0.7852,
-    "f1_score": 0.8102
+    "accuracy": 0.8557,
+    "precision": 0.8563,
+    "recall": 0.8557,
+    "f1_score": 0.8555
   },
   "classification_report": {
     "ham": {
-      "precision": 0.7944,
-      "recall": 0.7988,
-      "f1-score": 0.7966,
-      "support": 213
+      "precision": 0.8433587786259542,
+      "recall": 0.8818646232439336,
+      "f1-score": 0.8621819884501326,
+      "support": 3132.0
     },
     "spam": {
-      "precision": 0.7952,
-      "recall": 0.8191,
-      "f1-score": 0.807,
-      "support": 219
+      "precision": 0.8698557861413999,
+      "recall": 0.8281982585398526,
+      "f1-score": 0.8485160404872191,
+      "support": 2986.0
     },
-    "accuracy": 0.8134,
+    "accuracy": 0.8556717881660674,
     "macro avg": {
-      "precision": 0.7948,
-      "recall": 0.8089,
-      "f1-score": 0.8018,
-      "support": 407
+      "precision": 0.856607282383677,
+      "recall": 0.8550314408918931,
+      "f1-score": 0.8553490144686758,
+      "support": 6118.0
     },
     "weighted avg": {
-      "precision": 0.8122,
-      "recall": 0.8101,
-      "f1-score": 0.8196,
-      "support": 365
+      "precision": 0.856291119986059,
+      "recall": 0.8556717881660674,
+      "f1-score": 0.8555120766133787,
+      "support": 6118.0
     }
   },
-  "timestamp": "2025-06-18T01:51:30.649945"
+  "timestamp": "2025-09-07T15:09:03.006822"
 }

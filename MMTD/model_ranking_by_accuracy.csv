@@ -1,0 +1,16 @@
+Rank,Model Name,Avg Accuracy,Size (MB)
+1,Tinybert + Vit-Tiny,0.973,76.6
+2,Tinybert + Mobilevit,0.964,76.0
+3,Tinybert + Deit,0.904,385.0
+4,Distilbert + Vit-Tiny,0.902,538.0
+5,Distilbert + Deit,0.894,846.5
+6,Distilbert + Mobilevit,0.857,537.5
+7,Bert + Mobilevit,0.853,462.2
+8,Distilbert + Beit,0.740,869.6
+9,Tinybert + Beit,0.739,409.0
+10,Bert + Vit-Tiny,0.721,462.8
+11,Bert + Deit,0.609,771.2
+12,Mobilebert + Beit,0.519,448.7
+13,Mobilebert + Vit-Tiny,0.512,115.6
+14,Mobilebert + Mobilevit,0.512,115.1
+15,Mobilebert + Deit,0.500,424.0
